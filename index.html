@@ -1,4 +1,4 @@
-<!-- А что потом? v0.4.0 | шаг 4 из 7: экспорт md и Заметки | по ТЗ 1.0 от 12.06.2026 -->
+<!-- А что потом? v0.5.0 | шаг 5 из 7: ссылка-снимок и .json | по ТЗ 1.0 от 12.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -174,6 +174,10 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
   background:var(--card);border:1px solid var(--line);border-radius:999px;
   padding:5px 12px;color:var(--text2);
 }
+.snapbar{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--accent);border-radius:14px;padding:12px 14px;margin:0 0 14px;box-shadow:var(--shadow)}
+.snapbar p{margin:0;font-size:15px;line-height:1.4}
+.snaperr{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 16px;text-align:center;box-shadow:var(--shadow)}
+.snaperr p{margin:0 0 12px}
 .hint{
   font-size:14px;color:var(--text2);
   border:1px dashed var(--line);border-radius:12px;
@@ -401,6 +405,12 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
     </div>
   </header>
   <main class="wrap">
+    <!-- Поврежденная ссылка-снимок (п. 7.5) -->
+    <div class="snaperr" id="snapErr" hidden>
+      <p>Не удалось открыть снимок: ссылка повреждена</p>
+      <button class="btn primary" data-new>Новый анализ</button>
+    </div>
+
     <div id="listFull">
       <div class="list-head">Мои анализы</div>
 
@@ -410,6 +420,7 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
       <div class="list-actions">
         <button class="btn primary" data-new>Новый анализ</button>
         <button class="btn ghost" id="btnImport">Импорт .json</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
       </div>
     </div>
 
@@ -438,6 +449,12 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
     </div>
   </header>
   <main class="wrap" id="editor">
+
+    <!-- Плашка режима снимка (п. 7.5) -->
+    <div class="snapbar" id="snapBar" hidden>
+      <p>Открыт снимок. Изменения не сохраняются автоматически</p>
+      <button class="btn primary" id="snapSave">Сохранить в Мои анализы</button>
+    </div>
 
     <section class="decision">
       <div class="decision-label">Решение</div>
@@ -547,12 +564,22 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
 </div>
 
 <script>
+/*
+LZ-String 1.5.0 (встроено: только сжатие ссылки-снимка)
+Copyright (c) 2013 Pieroxy <pieroxy@pieroxy.net>
+This work is free. You can redistribute it and/or modify it
+under the terms of the WTFPL, Version 2
+For more information see LICENSE.txt or http://www.wtfpl.net/
+Package license per npm lz-string 1.5.0: MIT
+Home page: http://pieroxy.net/blog/pages/lz-string/testing.html
+*/
+var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",e={};function t(r,o){if(!e[r]){e[r]={};for(var n=0;n<r.length;n++)e[r][r.charAt(n)]=n}return e[r][o]}var i={compressToBase64:function(r){if(null==r)return"";var n=i._compress(r,6,function(r){return o.charAt(r)});switch(n.length%4){default:case 0:return n;case 1:return n+"===";case 2:return n+"==";case 3:return n+"="}},decompressFromBase64:function(r){return null==r?"":""==r?null:i._decompress(r.length,32,function(n){return t(o,r.charAt(n))})},compressToUTF16:function(o){return null==o?"":i._compress(o,15,function(o){return r(o+32)})+" "},decompressFromUTF16:function(r){return null==r?"":""==r?null:i._decompress(r.length,16384,function(o){return r.charCodeAt(o)-32})},compressToUint8Array:function(r){for(var o=i.compress(r),n=new Uint8Array(2*o.length),e=0,t=o.length;e<t;e++){var s=o.charCodeAt(e);n[2*e]=s>>>8,n[2*e+1]=s%256}return n},decompressFromUint8Array:function(o){if(null==o)return i.decompress(o);for(var n=new Array(o.length/2),e=0,t=n.length;e<t;e++)n[e]=256*o[2*e]+o[2*e+1];var s=[];return n.forEach(function(o){s.push(r(o))}),i.decompress(s.join(""))},compressToEncodedURIComponent:function(r){return null==r?"":i._compress(r,6,function(r){return n.charAt(r)})},decompressFromEncodedURIComponent:function(r){return null==r?"":""==r?null:(r=r.replace(/ /g,"+"),i._decompress(r.length,32,function(o){return t(n,r.charAt(o))}))},compress:function(o){return i._compress(o,16,function(o){return r(o)})},_compress:function(r,o,n){if(null==r)return"";var e,t,i,s={},u={},a="",p="",c="",l=2,f=3,h=2,d=[],m=0,v=0;for(i=0;i<r.length;i+=1)if(a=r.charAt(i),Object.prototype.hasOwnProperty.call(s,a)||(s[a]=f++,u[a]=!0),p=c+a,Object.prototype.hasOwnProperty.call(s,p))c=p;else{if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++),s[p]=f++,c=String(a)}if(""!==c){if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++)}for(t=2,e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;for(;;){if(m<<=1,v==o-1){d.push(n(m));break}v++}return d.join("")},decompress:function(r){return null==r?"":""==r?null:i._decompress(r.length,32768,function(o){return r.charCodeAt(o)})},_decompress:function(o,n,e){var t,i,s,u,a,p,c,l=[],f=4,h=4,d=3,m="",v=[],g={val:e(0),position:n,index:1};for(t=0;t<3;t+=1)l[t]=t;for(s=0,a=Math.pow(2,2),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 2:return""}for(l[3]=c,i=c,v.push(c);;){if(g.index>o)return"";for(s=0,a=Math.pow(2,d),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(c=s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 2:return v.join("")}if(0==f&&(f=Math.pow(2,d),d++),l[c])m=l[c];else{if(c!==h)return null;m=i+i.charAt(0)}v.push(m),l[h++]=i+m.charAt(0),i=m,0==--f&&(f=Math.pow(2,d),d++)}}};return i}();"function"==typeof define&&define.amd?define(function(){return LZString}):"undefined"!=typeof module&&null!=module?module.exports=LZString:"undefined"!=typeof angular&&null!=angular&&angular.module("LZString",[]).factory("LZString",function(){return LZString});
 (function(){
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v0.4.0';
-var APP_STEP = 'шаг 4 из 7: экспорт md и Заметки';
+var APP_VERSION = 'v0.5.0';
+var APP_STEP = 'шаг 5 из 7: ссылка-снимок и .json';
 
 function $(s, r){ return (r || document).querySelector(s); }
 function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -803,8 +830,11 @@ $('#toastAct').addEventListener('click', function(){
 
 /* ===== Диалог подтверждения ===== */
 var dlgBk = $('#dlgBk');
-function confirmDlg(text, onOk){
+var dlgOkBtn = $('#dlgOk');
+function confirmDlg(text, onOk, okLabel){
   $('#dlgText').textContent = text;
+  dlgOkBtn.textContent = okLabel || 'Удалить';
+  dlgOkBtn.classList.toggle('danger', !okLabel);
   pendingOk = onOk || null;
   openLayer(dlgBk);
 }
@@ -971,10 +1001,16 @@ function rerender(focusId){
   window.scrollTo(0, sy);
 }
 
-function enterEditor(d){
+function enterEditor(d, asSnapshot){
   doc = d;
-  store.activeDocId = d.id;
-  scheduleSave();
+  snapshotMode = !!asSnapshot;
+  $('#snapBar').hidden = !snapshotMode;
+  $('#miDelDoc').style.display = snapshotMode ? 'none' : '';
+  $('#snapErr').hidden = true;
+  if (!snapshotMode){
+    store.activeDocId = d.id;
+    scheduleSave();
+  }
   taDecision.value = doc.root.text;
   taDecision.setAttribute('data-id', doc.root.id);
   edTitle.textContent = trim60(doc.root.text);
@@ -988,6 +1024,11 @@ function enterEditor(d){
 /* ===== Список (п. 4.4-4.5): рендер из хранилища ===== */
 var docListEl = $('#docList');
 var currentDocId = null;
+var snapshotMode = false;
+
+function clearHash(){
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e){}
+}
 
 function fmtDate(iso){
   var d = new Date(iso);
@@ -1073,8 +1114,75 @@ $$('[data-new]').forEach(function(b){
 });
 $('#btnBack').addEventListener('click', goList);
 
-/* Импорт .json: логика на шаге 5 */
-$('#btnImport').addEventListener('click', function(){});
+/* Сохранение снимка в Мои анализы (п. 7.5): копия с новым id, хеш очищается */
+$('#snapSave').addEventListener('click', function(){
+  if (!doc || !snapshotMode){ return; }
+  doc.id = uid();
+  store.docs[doc.id] = doc;
+  store.activeDocId = doc.id;
+  saveNow();
+  snapshotMode = false;
+  $('#snapBar').hidden = true;
+  $('#miDelDoc').style.display = '';
+  clearHash();
+  toast('Сохранено в Мои анализы');
+});
+
+/* ===== Белый список полей (пп. 7.5-7.6, 10.1): чужие данные не доверяются ===== */
+function sanitizeNode(raw){
+  var n = makeNode(raw && raw.sign === 'minus' ? 'minus' : 'plus',
+                   raw && raw.horizon === 'far' ? 'far' : 'near');
+  if (raw && typeof raw.text === 'string'){ n.text = raw.text.slice(0, 2000); }
+  n.collapsed = !!(raw && raw.collapsed === true);
+  if (raw && Array.isArray(raw.children)){
+    for (var i = 0; i < raw.children.length; i++){
+      var c = raw.children[i];
+      if (c && typeof c === 'object'){ n.children.push(sanitizeNode(c)); }
+    }
+  }
+  return n;
+}
+function sanitizeDoc(raw){
+  var src = raw && typeof raw === 'object' && raw.doc && typeof raw.doc === 'object' ? raw.doc : raw;
+  if (!src || typeof src !== 'object' || !src.root || typeof src.root !== 'object'){
+    throw new Error('структура');
+  }
+  var d = makeDoc();
+  if (typeof src.createdAt === 'string'){ d.createdAt = src.createdAt; }
+  d.lastHorizon = src.lastHorizon === 'far' ? 'far' : 'near';
+  if (typeof src.root.text === 'string'){ d.root.text = src.root.text.slice(0, 2000); }
+  if (Array.isArray(src.root.children)){
+    for (var i = 0; i < src.root.children.length; i++){
+      var c = src.root.children[i];
+      if (c && typeof c === 'object'){ d.root.children.push(sanitizeNode(c)); }
+    }
+  }
+  return d;
+}
+
+/* Импорт .json из Списка (п. 7.6) */
+var importInput = $('#importFile');
+$('#btnImport').addEventListener('click', function(){ importInput.click(); });
+importInput.addEventListener('change', function(){
+  var f = importInput.files && importInput.files[0];
+  importInput.value = '';
+  if (!f){ return; }
+  var r = new FileReader();
+  r.onerror = function(){ toast('Не удалось импортировать: файл не читается'); };
+  r.onload = function(){
+    var d;
+    try { d = sanitizeDoc(JSON.parse(String(r.result))); }
+    catch (e){
+      toast('Не удалось импортировать: файл поврежден или не подходит');
+      return;
+    }
+    store.docs[d.id] = d;
+    saveNow();
+    renderList();
+    toast('Анализ импортирован');
+  };
+  r.readAsText(f);
+});
 
 /* ===== Ввод текста: без перерендера дерева (п. 5.10) ===== */
 document.addEventListener('input', function(e){
@@ -1415,6 +1523,31 @@ $('#btnExpDownMd').addEventListener('click', function(){
   downloadFile('a-chto-potom_' + fileStamp() + '.md', buildMd(doc), 'text/markdown;charset=utf-8');
 });
 
+/* Ссылка-снимок (п. 7.4) и выгрузка .json (п. 7.6) */
+$('#btnExpLink').addEventListener('click', function(){
+  if (!doc){ return; }
+  closeLayer(sheetBk);
+  var url = location.origin + location.pathname + '#d=' +
+    LZString.compressToEncodedURIComponent(JSON.stringify(doc));
+  if (url.length > 3500){
+    confirmDlg('Ссылка длиннее 3500 символов: в Telegram может не поместиться в одно сообщение, надежнее .json',
+      function(){ copyText(url, 'Скопировано'); },
+      'Копировать все равно');
+  } else {
+    copyText(url, 'Скопировано');
+  }
+});
+
+$('#btnExpJson').addEventListener('click', function(){
+  if (!doc){ return; }
+  closeLayer(sheetBk);
+  var data = { version: 1 };
+  for (var k in doc){
+    if (Object.prototype.hasOwnProperty.call(doc, k)){ data[k] = doc[k]; }
+  }
+  downloadFile('a-chto-potom_' + fileStamp() + '.json', JSON.stringify(data), 'application/json');
+});
+
 $('#btnExpNotes').addEventListener('click', function(){
   if (!doc){ return; }
   closeLayer(sheetBk);
@@ -1502,9 +1635,22 @@ document.addEventListener('keydown', function(e){
 /* ===== Старт (п. 4.2) ===== */
 applyTheme();
 if (/^#d=/.test(location.hash || '')){
-  /* Режим снимка (п. 7.5): декодер появится на шаге 5, пока открываю список */
-  renderList();
-  go('scrList');
+  /* Режим снимка (п. 7.5): документы в хранилище не затрагиваются до явного сохранения */
+  var packed = location.hash.slice(3);
+  var snapJson = null;
+  try { snapJson = LZString.decompressFromEncodedURIComponent(packed); } catch (e){}
+  var snapDoc = null;
+  if (snapJson){
+    try { snapDoc = sanitizeDoc(JSON.parse(snapJson)); } catch (e){}
+  }
+  if (snapDoc){
+    enterEditor(snapDoc, true);
+  } else {
+    clearHash();
+    renderList();
+    go('scrList');
+    $('#snapErr').hidden = false;
+  }
 } else if (store.activeDocId && store.docs[store.activeDocId]){
   enterEditor(store.docs[store.activeDocId]);
 } else {
