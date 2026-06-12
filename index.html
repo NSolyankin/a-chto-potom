@@ -1,4 +1,4 @@
-<!-- А что потом? v0.1.1 | шаг 1 из 7: каркас и стили | по ТЗ 1.0 от 12.06.2026 -->
+<!-- А что потом? v0.2.0 | шаг 2 из 7: дерево и карточки | по ТЗ 1.0 от 12.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -371,8 +371,6 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
 }
 
 /* Скрытие демо-частей в режиме нового анализа */
-#editor.empty .demo-only{display:none !important}
-#editor:not(.empty) .new-only{display:none !important}
 
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation:none !important;transition:none !important}
@@ -463,166 +461,16 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
       <textarea id="taDecision" rows="1" maxlength="2000" placeholder="Какое решение анализируем?"></textarea>
     </section>
 
-    <div class="balance demo-only">
-      <span class="pill">близкие: <span class="np">+2</span> / <span class="nm">-3</span></span>
-      <span class="pill">отдаленные: <span class="np">+2</span> / <span class="nm">-2</span></span>
-    </div>
-    <div class="balance new-only">
-      <span class="pill">близкие: <span class="np">+0</span> / <span class="nm">-0</span></span>
-      <span class="pill">отдаленные: <span class="np">+0</span> / <span class="nm">-0</span></span>
+    <div class="balance">
+      <span class="pill">близкие: <span class="np" id="bNearP">+0</span> / <span class="nm" id="bNearM">-0</span></span>
+      <span class="pill">отдаленные: <span class="np" id="bFarP">+0</span> / <span class="nm" id="bFarM">-0</span></span>
     </div>
 
-    <!-- Методическая подсказка (п. 5.4): здесь как образец стиля, включается из демо-меню -->
-    <p class="hint demo-only" id="hintLine" hidden>По Тарасову, решений только с плюсами не бывает. Какие минусы упущены?</p>
+    <!-- Методическая подсказка (п. 5.4) -->
+    <p class="hint" id="hintLine" hidden></p>
 
-    <!-- Демо-дерево: верстка и стили карточек; реальный рендер появится на шаге 2 -->
-    <div class="demo-only" id="demoTree">
-
-      <article class="csq plus open">
-        <div class="csq-top">
-          <button class="chip sign" aria-label="Знак: положительное">+</button>
-          <button class="chip hor" aria-label="Горизонт">близкое</button>
-          <span class="sp"></span>
-          <button class="iconbtn kebab" aria-label="Меню карточки"><svg class="icon"><use href="#i-dots"/></svg></button>
-        </div>
-        <textarea rows="1" maxlength="2000" placeholder="Опишите последствие">Больше участников смогут приходить</textarea>
-        <div class="csq-actions">
-          <button class="btn-what" aria-expanded="true">А что потом?</button>
-          <span class="capsule"><span class="np">+1</span> / <span class="nm">-2</span></span>
-          <button class="iconbtn chev" aria-label="Свернуть ветку"><svg class="icon"><use href="#i-chev"/></svg></button>
-        </div>
-        <div class="kids"><div class="kids-in"><div class="branch" style="--ind:14px">
-
-          <article class="csq plus">
-            <div class="csq-top">
-              <button class="chip sign" aria-label="Знак: положительное">+</button>
-              <button class="chip hor" aria-label="Горизонт">отдаленное</button>
-              <span class="sp"></span>
-              <button class="iconbtn kebab" aria-label="Меню карточки"><svg class="icon"><use href="#i-dots"/></svg></button>
-            </div>
-            <textarea rows="1" maxlength="2000" placeholder="Опишите последствие">Группа вырастет, появится резерв ведущих</textarea>
-            <div class="csq-actions">
-              <button class="btn-what" aria-expanded="false">А что потом?</button>
-            </div>
-          </article>
-
-          <article class="csq minus open">
-            <div class="csq-top">
-              <button class="chip sign" aria-label="Знак: отрицательное">-</button>
-              <button class="chip hor" aria-label="Горизонт">близкое</button>
-              <span class="sp"></span>
-              <button class="iconbtn kebab" aria-label="Меню карточки"><svg class="icon"><use href="#i-dots"/></svg></button>
-            </div>
-            <textarea rows="1" maxlength="2000" placeholder="Опишите последствие">Часть нынешних участников потеряет субботнее утро</textarea>
-            <div class="csq-actions">
-              <button class="btn-what" aria-expanded="true">А что потом?</button>
-              <span class="capsule"><span class="np">+0</span> / <span class="nm">-1</span></span>
-              <button class="iconbtn chev" aria-label="Свернуть ветку"><svg class="icon"><use href="#i-chev"/></svg></button>
-            </div>
-            <div class="kids"><div class="kids-in"><div class="branch" style="--ind:14px">
-
-              <article class="csq minus">
-                <div class="csq-top">
-                  <button class="chip sign" aria-label="Знак: отрицательное">-</button>
-                  <button class="chip hor" aria-label="Горизонт">отдаленное</button>
-                  <span class="sp"></span>
-                  <button class="iconbtn kebab" aria-label="Меню карточки"><svg class="icon"><use href="#i-dots"/></svg></button>
-                </div>
-                <textarea rows="1" maxlength="2000" placeholder="Опишите последствие">Кто-то уйдет из группы</textarea>
-                <div class="csq-actions">
-                  <button class="btn-what" aria-expanded="false">А что потом?</button>
-                </div>
-              </article>
-
-              <div class="addpair">
-                <button class="btn-add plus">+ Положительное</button>
-                <button class="btn-add minus">+ Отрицательное</button>
-              </div>
-            </div></div></div>
-          </article>
-
-          <div class="addpair">
-            <button class="btn-add plus">+ Положительное</button>
-            <button class="btn-add minus">+ Отрицательное</button>
-          </div>
-        </div></div></div>
-      </article>
-
-      <article class="csq plus">
-        <div class="csq-top">
-          <button class="chip sign" aria-label="Знак: положительное">+</button>
-          <button class="chip hor" aria-label="Горизонт">близкое</button>
-          <span class="sp"></span>
-          <button class="iconbtn kebab" aria-label="Меню карточки"><svg class="icon"><use href="#i-dots"/></svg></button>
-        </div>
-        <textarea rows="1" maxlength="2000" placeholder="Опишите последствие">Зал по субботам дешевле</textarea>
-        <div class="csq-actions">
-          <button class="btn-what" aria-expanded="false">А что потом?</button>
-          <span class="capsule"><span class="np">+1</span> / <span class="nm">-1</span></span>
-          <button class="iconbtn chev" aria-label="Развернуть ветку"><svg class="icon"><use href="#i-chev"/></svg></button>
-        </div>
-        <div class="kids"><div class="kids-in"><div class="branch" style="--ind:14px">
-
-          <article class="csq plus">
-            <div class="csq-top">
-              <button class="chip sign" aria-label="Знак: положительное">+</button>
-              <button class="chip hor" aria-label="Горизонт">отдаленное</button>
-              <span class="sp"></span>
-              <button class="iconbtn kebab" aria-label="Меню карточки"><svg class="icon"><use href="#i-dots"/></svg></button>
-            </div>
-            <textarea rows="1" maxlength="2000" placeholder="Опишите последствие">Сэкономленные деньги пойдут на библиотеку группы</textarea>
-            <div class="csq-actions">
-              <button class="btn-what" aria-expanded="false">А что потом?</button>
-            </div>
-          </article>
-
-          <article class="csq minus">
-            <div class="csq-top">
-              <button class="chip sign" aria-label="Знак: отрицательное">-</button>
-              <button class="chip hor" aria-label="Горизонт">близкое</button>
-              <span class="sp"></span>
-              <button class="iconbtn kebab" aria-label="Меню карточки"><svg class="icon"><use href="#i-dots"/></svg></button>
-            </div>
-            <textarea rows="1" maxlength="2000" placeholder="Опишите последствие">Утром в зале холодно</textarea>
-            <div class="csq-actions">
-              <button class="btn-what" aria-expanded="false">А что потом?</button>
-            </div>
-          </article>
-
-          <div class="addpair">
-            <button class="btn-add plus">+ Положительное</button>
-            <button class="btn-add minus">+ Отрицательное</button>
-          </div>
-        </div></div></div>
-      </article>
-
-      <article class="csq minus">
-        <div class="csq-top">
-          <button class="chip sign" aria-label="Знак: отрицательное">-</button>
-          <button class="chip hor" aria-label="Горизонт">близкое</button>
-          <span class="sp"></span>
-          <button class="iconbtn kebab" aria-label="Меню карточки"><svg class="icon"><use href="#i-dots"/></svg></button>
-        </div>
-        <textarea rows="1" maxlength="2000" placeholder="Опишите последствие">Придется заново договариваться о зале</textarea>
-        <div class="csq-actions">
-          <button class="btn-what" aria-expanded="false">А что потом?</button>
-        </div>
-      </article>
-
-      <article class="csq minus">
-        <div class="csq-top">
-          <button class="chip sign" aria-label="Знак: отрицательное">-</button>
-          <button class="chip hor" aria-label="Горизонт">отдаленное</button>
-          <span class="sp"></span>
-          <button class="iconbtn kebab" aria-label="Меню карточки"><svg class="icon"><use href="#i-dots"/></svg></button>
-        </div>
-        <textarea rows="1" maxlength="2000" placeholder="Опишите последствие">Конкуренция с семейными планами участников</textarea>
-        <div class="csq-actions">
-          <button class="btn-what" aria-expanded="false">А что потом?</button>
-        </div>
-      </article>
-
-    </div>
+    <!-- Дерево последствий: строится рендерером из данных документа -->
+    <div id="cards"></div>
 
     <div class="addbar">
       <div class="addpair">
@@ -633,41 +481,16 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
   </main>
 </section>
 
-<!-- ===== Оверлей: Матрица (демо-наполнение, логика на шаге 6) ===== -->
+<!-- ===== Оверлей: Матрица (п. 6): содержимое строит скрипт ===== -->
 <div class="mx" id="mx" hidden>
   <div class="mx-head">
     <div class="mx-head-in">
-      <div class="mx-node">Проводить встречи группы по субботам утром</div>
+      <div class="mx-node" id="mxNode"></div>
       <button class="mx-close" id="mxClose">Закрыть</button>
     </div>
   </div>
   <div class="mx-wrap">
-    <div class="mx-grid">
-      <div></div>
-      <div class="mx-ch">Близкие</div>
-      <div class="mx-ch">Отдаленные</div>
-
-      <div class="mx-rl p">Положительные</div>
-      <div class="mx-cell">
-        <div class="mx-qh p">Положительные близкие</div>
-        <div class="mx-item">Больше участников смогут приходить<span class="mx-more">еще 3 внутри</span></div>
-        <div class="mx-item">Зал по субботам дешевле<span class="mx-more">еще 2 внутри</span></div>
-      </div>
-      <div class="mx-cell">
-        <div class="mx-qh p">Положительные отдаленные</div>
-        <div class="mx-dash" role="presentation"></div>
-      </div>
-
-      <div class="mx-rl m">Отрицательные</div>
-      <div class="mx-cell">
-        <div class="mx-qh m">Отрицательные близкие</div>
-        <div class="mx-item">Придется заново договариваться о зале</div>
-      </div>
-      <div class="mx-cell">
-        <div class="mx-qh m">Отрицательные отдаленные</div>
-        <div class="mx-item">Конкуренция с семейными планами участников</div>
-      </div>
-    </div>
+    <div class="mx-grid" id="mxGrid"></div>
   </div>
 </div>
 
@@ -716,11 +539,6 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
   <hr>
   <button class="danger" id="miDelDoc"><svg class="icon"><use href="#i-trash"/></svg>Удалить анализ</button>
   <button id="miAbout">О приложении</button>
-  <hr>
-  <!-- ВРЕМЕННО (шаг 1): демо-пункты для проверки стилей -->
-  <div class="pop-label">Демо шага 1</div>
-  <button id="miHint">Подсказка метода</button>
-  <button id="miToast">Показать тост</button>
 </div>
 
 <div class="pop" id="popCard" hidden>
@@ -750,13 +568,142 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v0.1.1';
-var APP_STEP = 'шаг 1 из 7: каркас и стили';
-
-var DEMO_TITLE = 'Проводить встречи группы по субботам утром';
+var APP_VERSION = 'v0.2.0';
+var APP_STEP = 'шаг 2 из 7: дерево и карточки';
 
 function $(s, r){ return (r || document).querySelector(s); }
 function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+
+/* ===== Идентификаторы (п. 3.5) ===== */
+function uid(){
+  if (window.crypto && crypto.randomUUID){ return crypto.randomUUID(); }
+  return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+}
+
+/* ===== Модель (п. 3.2-3.3). Хранение в localStorage появится на шаге 3 ===== */
+function makeDoc(){
+  var now = new Date().toISOString();
+  return { id: uid(), createdAt: now, updatedAt: now, lastHorizon: 'near',
+    root: { id: uid(), text: '', children: [] } };
+}
+function makeNode(sign, horizon){
+  return { id: uid(), text: '', sign: sign, horizon: horizon, collapsed: false, children: [] };
+}
+function touch(){ if (doc){ doc.updatedAt = new Date().toISOString(); } }
+
+/* Поиск узла: возвращает узел, родителя и индекс в массиве хранения */
+function findNode(root, id){
+  if (root.id === id){ return { node: root, parent: null, index: -1 }; }
+  var stack = [root];
+  while (stack.length){
+    var p = stack.pop();
+    for (var i = 0; i < p.children.length; i++){
+      var c = p.children[i];
+      if (c.id === id){ return { node: c, parent: p, index: i }; }
+      stack.push(c);
+    }
+  }
+  return null;
+}
+
+function isFilled(n){ return n.text.replace(/\s+/g, '').length > 0; }
+
+/* Все физически вложенные карточки, включая саму: N для диалога и тоста (п. 5.9) */
+function subtreeCount(n){
+  var t = 1;
+  for (var i = 0; i < n.children.length; i++){ t += subtreeCount(n.children[i]); }
+  return t;
+}
+
+/* Заполненные потомки по знаку: капсула свернутой ветки (п. 5.8) */
+function descFilled(n){
+  var r = { p: 0, m: 0 };
+  (function walk(x){
+    for (var i = 0; i < x.children.length; i++){
+      var c = x.children[i];
+      if (isFilled(c)){ if (c.sign === 'plus'){ r.p++; } else { r.m++; } }
+      walk(c);
+    }
+  })(n);
+  return r;
+}
+
+/* Счетчики по всему дереву (п. 5.3) и итоги для подсказки (п. 5.4) */
+function countersAll(root){
+  var r = { nearP: 0, nearM: 0, farP: 0, farM: 0, p: 0, m: 0, total: 0 };
+  (function walk(x){
+    for (var i = 0; i < x.children.length; i++){
+      var c = x.children[i];
+      if (isFilled(c)){
+        r.total++;
+        if (c.sign === 'plus'){ r.p++; } else { r.m++; }
+        if (c.horizon === 'near'){ if (c.sign === 'plus'){ r.nearP++; } else { r.nearM++; } }
+        else { if (c.sign === 'plus'){ r.farP++; } else { r.farM++; } }
+      }
+      walk(c);
+    }
+  })(root);
+  return r;
+}
+
+/* Порядок отображения: сначала плюсы, затем минусы, внутри группы порядок добавления (п. 3.7) */
+function grouped(children){
+  var p = [], m = [];
+  for (var i = 0; i < children.length; i++){
+    if (children[i].sign === 'plus'){ p.push(children[i]); } else { m.push(children[i]); }
+  }
+  return p.concat(m);
+}
+
+/* ===== Состояние ===== */
+var doc = null;          /* активный документ */
+var undoBuf = null;      /* буфер возврата удаленной ветки: живет до исчезновения тоста */
+var openedEmpty = {};    /* id -> true: блок анализа без детей раскрыт в этой сессии */
+var currentNodeId = null;/* карточка, для которой открыто меню */
+var pendingOk = null;    /* действие кнопки Удалить в диалоге подтверждения */
+
+/* ===== Демо-документы: живут в памяти до появления хранилища (шаг 3) ===== */
+function demoNode(text, sign, horizon, kids, collapsed){
+  var n = makeNode(sign, horizon);
+  n.text = text;
+  n.children = kids || [];
+  n.collapsed = !!collapsed;
+  return n;
+}
+var demoDocs = {
+  d1: (function(){
+    var d = makeDoc();
+    d.createdAt = '2026-06-12T05:10:00.000Z'; d.updatedAt = '2026-06-12T07:40:00.000Z';
+    d.root.text = 'Проводить встречи группы по субботам утром';
+    d.root.children = [
+      demoNode('Больше участников смогут приходить', 'plus', 'near', [
+        demoNode('Группа вырастет, появится резерв ведущих', 'plus', 'far'),
+        demoNode('Часть нынешних участников потеряет субботнее утро', 'minus', 'near', [
+          demoNode('Кто-то уйдет из группы', 'minus', 'far')
+        ])
+      ]),
+      demoNode('Зал по субботам дешевле', 'plus', 'near', [
+        demoNode('Сэкономленные деньги пойдут на библиотеку группы', 'plus', 'far'),
+        demoNode('Утром в зале холодно', 'minus', 'near')
+      ], true),
+      demoNode('Придется заново договариваться о зале', 'minus', 'near'),
+      demoNode('Конкуренция с семейными планами участников', 'minus', 'far')
+    ];
+    return d;
+  })(),
+  d2: (function(){
+    var d = makeDoc();
+    d.createdAt = '2026-06-10T10:00:00.000Z'; d.updatedAt = '2026-06-10T10:30:00.000Z';
+    d.root.text = 'Купить второй проектор для клуба';
+    d.root.children = [
+      demoNode('Поединки и разборы можно вести в двух залах параллельно', 'plus', 'near'),
+      demoNode('Реже срываются показы из-за техники', 'plus', 'far'),
+      demoNode('Заметный расход из кассы группы', 'minus', 'near'),
+      demoNode('Нужно безопасное место хранения', 'minus', 'near')
+    ];
+    return d;
+  })()
+};
 
 /* ===== Блокировка прокрутки фона под слоями ===== */
 var lockCount = 0;
@@ -767,13 +714,13 @@ function lock(on){
 function openLayer(el){ el.hidden = false; lock(true); }
 function closeLayer(el){ if (el.hidden) return; el.hidden = true; lock(false); }
 
-/* ===== Навигация экранов (без перезагрузки, п. 4.3) ===== */
+/* ===== Навигация экранов (п. 4.3) ===== */
 function go(id){
   $$('[data-screen]').forEach(function(s){ s.hidden = (s.id !== id); });
   window.scrollTo(0, 0);
 }
 
-/* ===== Тема (п. 9.3). Шаг 1: выбор живет в памяти, сохранение появится на шаге 3 ===== */
+/* ===== Тема (п. 9.3). Выбор живет в памяти, сохранение появится на шаге 3 ===== */
 var THEME_ORDER = ['auto', 'light', 'dark'];
 var THEME_NAMES = { auto: 'авто', light: 'светлая', dark: 'темная' };
 var COLOR_LIGHT = '#F6F5F1';
@@ -816,9 +763,6 @@ window.addEventListener('resize', function(){
   if (growRaf) return;
   growRaf = requestAnimationFrame(function(){ growRaf = null; growAll(); });
 });
-document.addEventListener('input', function(e){
-  if (e.target && e.target.tagName === 'TEXTAREA'){ grow(e.target); }
-});
 
 /* ===== Поповеры меню ===== */
 var popBk = $('#popBk');
@@ -840,7 +784,7 @@ function closeMenu(){
 }
 popBk.addEventListener('click', closeMenu);
 
-/* ===== Тост (5 секунд, п. 5.9) ===== */
+/* ===== Тост (п. 5.9): буфер возврата живет до исчезновения тоста ===== */
 var toastEl = $('#toast');
 var toastTimer = null;
 function toast(text, actionLabel){
@@ -852,18 +796,40 @@ function toast(text, actionLabel){
   clearTimeout(toastTimer);
   toastTimer = setTimeout(hideToast, 5000);
 }
-function hideToast(){ toastEl.classList.remove('show'); }
-$('#toastAct').addEventListener('click', hideToast); /* возврат поддерева: шаг 2 */
+function hideToast(){
+  toastEl.classList.remove('show');
+  clearTimeout(toastTimer);
+  undoBuf = null;
+}
+$('#toastAct').addEventListener('click', function(){
+  if (undoBuf){
+    var f = findNode(doc.root, undoBuf.parentId);
+    if (f){
+      var arr = f.node.children;
+      arr.splice(Math.min(undoBuf.index, arr.length), 0, undoBuf.node);
+      touch();
+      rerender();
+    }
+    undoBuf = null;
+  }
+  hideToast();
+});
 
 /* ===== Диалог подтверждения ===== */
 var dlgBk = $('#dlgBk');
-function confirmDlg(text){
+function confirmDlg(text, onOk){
   $('#dlgText').textContent = text;
+  pendingOk = onOk || null;
   openLayer(dlgBk);
 }
-$('#dlgCancel').addEventListener('click', function(){ closeLayer(dlgBk); });
-$('#dlgOk').addEventListener('click', function(){ closeLayer(dlgBk); }); /* удаление: шаги 2-3 */
-dlgBk.addEventListener('click', function(e){ if (e.target === dlgBk) closeLayer(dlgBk); });
+$('#dlgCancel').addEventListener('click', function(){ pendingOk = null; closeLayer(dlgBk); });
+$('#dlgOk').addEventListener('click', function(){
+  var f = pendingOk;
+  pendingOk = null;
+  closeLayer(dlgBk);
+  if (f){ f(); }
+});
+dlgBk.addEventListener('click', function(e){ if (e.target === dlgBk){ pendingOk = null; closeLayer(dlgBk); } });
 
 /* ===== О приложении ===== */
 var aboutBk = $('#aboutBk');
@@ -872,8 +838,9 @@ $('#miAbout').addEventListener('click', function(){ closeMenu(); openLayer(about
 $('#aboutOk').addEventListener('click', function(){ closeLayer(aboutBk); });
 aboutBk.addEventListener('click', function(e){ if (e.target === aboutBk) closeLayer(aboutBk); });
 
-/* ===== Список и Редактор ===== */
+/* ===== Редактор: рендер дерева ===== */
 var editor = $('#editor');
+var cardsEl = $('#cards');
 var taDecision = $('#taDecision');
 var edTitle = $('#edTitle');
 
@@ -883,78 +850,379 @@ function trim60(s){
   return s.length > 60 ? s.slice(0, 60) + '…' : s;
 }
 
-function enterEditor(isNew){
-  editor.classList.toggle('empty', !!isNew);
-  taDecision.value = isNew ? '' : DEMO_TITLE;
-  edTitle.textContent = trim60(taDecision.value);
+function el(tag, cls){
+  var e = document.createElement(tag);
+  if (cls){ e.className = cls; }
+  return e;
+}
+function iconBtn(cls, label, icon){
+  var b = el('button', cls);
+  b.setAttribute('aria-label', label);
+  var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'icon');
+  var use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+  use.setAttribute('href', icon);
+  svg.appendChild(use);
+  b.appendChild(svg);
+  return b;
+}
+function addPair(parentId){
+  var w = el('div', 'addpair');
+  if (parentId){ w.setAttribute('data-parent', parentId); }
+  var p = el('button', 'btn-add plus'); p.textContent = '+ Положительное';
+  var m = el('button', 'btn-add minus'); m.textContent = '+ Отрицательное';
+  w.appendChild(p); w.appendChild(m);
+  return w;
+}
+
+function renderCard(n, depth){
+  var hasKids = n.children.length > 0;
+  var isOpen = hasKids ? !n.collapsed : !!openedEmpty[n.id];
+
+  var card = el('article', 'csq ' + (n.sign === 'plus' ? 'plus' : 'minus') + (isOpen ? ' open' : ''));
+  card.setAttribute('data-id', n.id);
+
+  var top = el('div', 'csq-top');
+  var chS = el('button', 'chip sign');
+  chS.textContent = n.sign === 'plus' ? '+' : '-';
+  chS.setAttribute('aria-label', n.sign === 'plus' ? 'Знак: положительное' : 'Знак: отрицательное');
+  var chH = el('button', 'chip hor');
+  chH.textContent = n.horizon === 'near' ? 'близкое' : 'отдаленное';
+  chH.setAttribute('aria-label', 'Горизонт');
+  top.appendChild(chS); top.appendChild(chH); top.appendChild(el('span', 'sp'));
+  top.appendChild(iconBtn('iconbtn kebab', 'Меню карточки', '#i-dots'));
+  card.appendChild(top);
+
+  var ta = el('textarea');
+  ta.rows = 1; ta.maxLength = 2000;
+  ta.placeholder = 'Опишите последствие';
+  ta.value = n.text;
+  ta.setAttribute('data-id', n.id);
+  card.appendChild(ta);
+
+  var act = el('div', 'csq-actions');
+  var what = el('button', 'btn-what');
+  what.textContent = 'А что потом?';
+  what.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  act.appendChild(what);
+  if (hasKids){
+    var d = descFilled(n);
+    var cap = el('span', 'capsule');
+    var np = el('span', 'np'); np.textContent = '+' + d.p;
+    var nm = el('span', 'nm'); nm.textContent = '-' + d.m;
+    cap.appendChild(np); cap.appendChild(document.createTextNode(' / ')); cap.appendChild(nm);
+    act.appendChild(cap);
+    act.appendChild(iconBtn('iconbtn chev', isOpen ? 'Свернуть ветку' : 'Развернуть ветку', '#i-chev'));
+  }
+  card.appendChild(act);
+
+  /* Блок анализа (п. 5.7): дети группами плюсы-минусы и своя пара кнопок добавления */
+  var kids = el('div', 'kids');
+  var kidsIn = el('div', 'kids-in');
+  var branch = el('div', 'branch');
+  branch.style.setProperty('--ind', (depth + 1) <= 3 ? '14px' : '6px');
+  var g = grouped(n.children);
+  for (var i = 0; i < g.length; i++){ branch.appendChild(renderCard(g[i], depth + 1)); }
+  branch.appendChild(addPair(n.id));
+  kidsIn.appendChild(branch);
+  kids.appendChild(kidsIn);
+  card.appendChild(kids);
+
+  return card;
+}
+
+function renderCards(){
+  while (cardsEl.firstChild){ cardsEl.removeChild(cardsEl.firstChild); }
+  var g = grouped(doc.root.children);
+  for (var i = 0; i < g.length; i++){ cardsEl.appendChild(renderCard(g[i], 1)); }
+}
+
+function updateBalance(){
+  var c = countersAll(doc.root);
+  $('#bNearP').textContent = '+' + c.nearP;
+  $('#bNearM').textContent = '-' + c.nearM;
+  $('#bFarP').textContent = '+' + c.farP;
+  $('#bFarM').textContent = '-' + c.farM;
+}
+
+function updateHint(){
+  var c = countersAll(doc.root);
+  var h = $('#hintLine');
+  if (c.total >= 3 && c.m === 0){
+    h.textContent = 'По Тарасову, решений только с плюсами не бывает. Какие минусы упущены?';
+    h.hidden = false;
+  } else if (c.total >= 3 && c.p === 0){
+    h.textContent = 'По Тарасову, решений только с минусами не бывает. Какие плюсы упущены?';
+    h.hidden = false;
+  } else {
+    h.hidden = true;
+  }
+}
+
+/* Перерисовка с сохранением фокуса, выделения и прокрутки (п. 5.10) */
+function rerender(focusId){
+  var fid = focusId || null, ss = 0, se = 0;
+  var ae = document.activeElement;
+  if (!fid && ae && ae.tagName === 'TEXTAREA' && ae.getAttribute('data-id')){
+    fid = ae.getAttribute('data-id');
+    ss = ae.selectionStart; se = ae.selectionEnd;
+  }
+  var sy = window.pageYOffset;
+  renderCards();
+  updateBalance();
+  updateHint();
+  growAll(cardsEl);
+  if (fid){
+    var ta = $('textarea[data-id="' + fid + '"]', editor);
+    if (ta){
+      ta.focus({ preventScroll: true });
+      if (!focusId){ try { ta.setSelectionRange(ss, se); } catch (e) {} }
+    }
+  }
+  window.scrollTo(0, sy);
+}
+
+function enterEditor(d){
+  doc = d;
+  taDecision.value = doc.root.text;
+  taDecision.setAttribute('data-id', doc.root.id);
+  edTitle.textContent = trim60(doc.root.text);
+  renderCards();
+  updateBalance();
+  updateHint();
   go('scrEditor');
   growAll(editor);
 }
 
+/* ===== Список ===== */
 $$('[data-new]').forEach(function(b){
-  b.addEventListener('click', function(){ enterEditor(true); });
+  b.addEventListener('click', function(){ enterEditor(makeDoc()); });
 });
 $$('[data-open-doc]').forEach(function(b){
   b.addEventListener('click', function(e){
     var k = e.target.closest('.kebab-doc');
     if (k){ e.preventDefault(); openMenu($('#popDoc'), k); return; }
-    enterEditor(false);
+    enterEditor(demoDocs[b.getAttribute('data-doc')] || demoDocs.d1);
   });
 });
 $('#btnBack').addEventListener('click', function(){ go('scrList'); });
-taDecision.addEventListener('input', function(){ edTitle.textContent = trim60(taDecision.value); });
 
 /* Импорт .json: логика на шаге 5 */
 $('#btnImport').addEventListener('click', function(){});
 
-/* ===== Шапка редактора ===== */
-var mx = $('#mx');
-$('#btnMatrix').addEventListener('click', function(){ openLayer(mx); });
-$('#mxClose').addEventListener('click', function(){ closeLayer(mx); }); /* прокрутка сохраняется: фон заблокирован */
+/* ===== Ввод текста: без перерендера дерева (п. 5.10) ===== */
+document.addEventListener('input', function(e){
+  var ta = e.target;
+  if (!ta || ta.tagName !== 'TEXTAREA'){ return; }
+  grow(ta);
+  if (!doc || !ta.getAttribute('data-id')){ return; }
+  var f = findNode(doc.root, ta.getAttribute('data-id'));
+  if (!f){ return; }
+  f.node.text = ta.value;
+  touch();
+  if (f.node === doc.root){
+    edTitle.textContent = trim60(ta.value);
+  } else {
+    updateBalance();
+    updateHint();
+  }
+});
 
+/* ===== Добавление карточек (п. 5.5, 5.7) ===== */
+document.addEventListener('click', function(e){
+  var btn = e.target.closest('.btn-add');
+  if (!btn || !doc){ return; }
+  var sign = btn.classList.contains('plus') ? 'plus' : 'minus';
+  var pair = btn.closest('.addpair');
+  var parentId = pair ? pair.getAttribute('data-parent') : null;
+  var parent = parentId ? (findNode(doc.root, parentId) || {}).node : doc.root;
+  if (!parent){ return; }
+  var n = makeNode(sign, doc.lastHorizon);
+  parent.children.push(n);
+  if (parent !== doc.root){
+    parent.collapsed = false;
+    delete openedEmpty[parent.id];
+  }
+  touch();
+  rerender(n.id);
+  var ta = $('textarea[data-id="' + n.id + '"]', editor);
+  if (ta && ta.scrollIntoView){ ta.scrollIntoView({ block: 'nearest' }); }
+});
+
+/* ===== Чипы знака и горизонта (п. 5.6) ===== */
+document.addEventListener('click', function(e){
+  var chip = e.target.closest('.chip');
+  if (!chip || !doc){ return; }
+  var card = chip.closest('.csq');
+  if (!card){ return; }
+  var f = findNode(doc.root, card.getAttribute('data-id'));
+  if (!f){ return; }
+  if (chip.classList.contains('sign')){
+    f.node.sign = f.node.sign === 'plus' ? 'minus' : 'plus';
+    touch();
+    rerender(); /* перегруппировка: плюсы перед минусами */
+  } else if (chip.classList.contains('hor')){
+    f.node.horizon = f.node.horizon === 'near' ? 'far' : 'near';
+    doc.lastHorizon = f.node.horizon;
+    chip.textContent = f.node.horizon === 'near' ? 'близкое' : 'отдаленное';
+    touch();
+    updateBalance();
+  }
+});
+
+/* ===== Свертывание: "А что потом?" и шеврон (п. 5.7-5.8) ===== */
+document.addEventListener('click', function(e){
+  var t = e.target.closest('.btn-what, .chev');
+  if (!t || !doc){ return; }
+  var card = t.closest('.csq');
+  if (!card){ return; }
+  var f = findNode(doc.root, card.getAttribute('data-id'));
+  if (!f){ return; }
+  var n = f.node;
+  var open;
+  if (n.children.length){
+    n.collapsed = !n.collapsed;
+    open = !n.collapsed;
+    touch();
+    if (!open){
+      /* обновляю капсулу: содержимое могло измениться, пока ветка была раскрыта */
+      var d = descFilled(n);
+      var np = card.querySelector(':scope > .csq-actions .capsule .np');
+      var nm = card.querySelector(':scope > .csq-actions .capsule .nm');
+      if (np){ np.textContent = '+' + d.p; }
+      if (nm){ nm.textContent = '-' + d.m; }
+    }
+  } else {
+    open = !openedEmpty[n.id];
+    if (open){ openedEmpty[n.id] = true; } else { delete openedEmpty[n.id]; }
+  }
+  card.classList.toggle('open', open);
+  var w = card.querySelector(':scope > .csq-actions .btn-what');
+  if (w){ w.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+  var ch = card.querySelector(':scope > .csq-actions .chev');
+  if (ch){ ch.setAttribute('aria-label', open ? 'Свернуть ветку' : 'Развернуть ветку'); }
+});
+
+/* ===== Меню карточки и удаление (п. 5.9) ===== */
+document.addEventListener('click', function(e){
+  var kb = e.target.closest('.kebab');
+  if (!kb){ return; }
+  var card = kb.closest('.csq');
+  if (!card){ return; }
+  currentNodeId = card.getAttribute('data-id');
+  var f = findNode(doc.root, currentNodeId);
+  $('#miCardMx').style.display = (f && f.node.children.length) ? '' : 'none';
+  openMenu($('#popCard'), kb);
+});
+
+function deleteNode(f, withToast){
+  f.parent.children.splice(f.index, 1);
+  var n = subtreeCount(f.node);
+  if (withToast){
+    undoBuf = { parentId: f.parent.id, index: f.index, node: f.node };
+    touch();
+    rerender();
+    toast('Удалено карточек: ' + n, 'Вернуть');
+  } else {
+    undoBuf = null;
+    touch();
+    rerender();
+  }
+}
+
+$('#miCardDel').addEventListener('click', function(){
+  closeMenu();
+  if (!currentNodeId){ return; }
+  var f = findNode(doc.root, currentNodeId);
+  if (!f || !f.parent){ return; }
+  if (!isFilled(f.node) && !f.node.children.length){
+    deleteNode(f, false); /* пустой лист: без подтверждения и без тоста */
+    return;
+  }
+  var n = subtreeCount(f.node);
+  confirmDlg('Удалить последствие и вложенные карточки (' + n + ')?', function(){
+    var ff = findNode(doc.root, currentNodeId);
+    if (ff && ff.parent){ deleteNode(ff, true); }
+  });
+});
+
+/* ===== Матрица (п. 6): строится из данных узла ===== */
+var mx = $('#mx');
+var SIGN_LABEL = { plus: 'Положительные', minus: 'Отрицательные' };
+var HOR_LABEL = { near: 'Близкие', far: 'Отдаленные' };
+var QH_LABEL = { near: 'близкие', far: 'отдаленные' };
+
+function mxCell(node, sign, hor){
+  var cell = el('div', 'mx-cell');
+  var qh = el('div', 'mx-qh ' + (sign === 'plus' ? 'p' : 'm'));
+  qh.textContent = SIGN_LABEL[sign] + ' ' + QH_LABEL[hor];
+  cell.appendChild(qh);
+  var shown = 0;
+  for (var i = 0; i < node.children.length; i++){
+    var c = node.children[i];
+    if (c.sign !== sign || c.horizon !== hor){ continue; }
+    if (!isFilled(c) && !c.children.length){ continue; } /* пустые без детей в счет не идут */
+    var item = el('div', 'mx-item');
+    item.appendChild(document.createTextNode(isFilled(c) ? c.text.trim() : '(без текста)'));
+    if (c.children.length){
+      var more = el('span', 'mx-more');
+      more.textContent = 'еще ' + (subtreeCount(c) - 1) + ' внутри';
+      item.appendChild(more);
+    }
+    cell.appendChild(item);
+    shown++;
+  }
+  if (!shown){
+    var dash = el('div', 'mx-dash');
+    dash.setAttribute('role', 'presentation');
+    cell.appendChild(dash);
+  }
+  return cell;
+}
+
+function openMatrix(node){
+  $('#mxNode').textContent = node.text.trim() ||
+    (node === doc.root ? 'Без названия' : '(без текста)');
+  var g = $('#mxGrid');
+  while (g.firstChild){ g.removeChild(g.firstChild); }
+  g.appendChild(el('div'));
+  var chN = el('div', 'mx-ch'); chN.textContent = HOR_LABEL.near; g.appendChild(chN);
+  var chF = el('div', 'mx-ch'); chF.textContent = HOR_LABEL.far; g.appendChild(chF);
+  ['plus', 'minus'].forEach(function(sign){
+    var rl = el('div', 'mx-rl ' + (sign === 'plus' ? 'p' : 'm'));
+    rl.textContent = SIGN_LABEL[sign];
+    g.appendChild(rl);
+    g.appendChild(mxCell(node, sign, 'near'));
+    g.appendChild(mxCell(node, sign, 'far'));
+  });
+  openLayer(mx);
+}
+
+$('#btnMatrix').addEventListener('click', function(){ openMatrix(doc.root); });
+$('#mxClose').addEventListener('click', function(){ closeLayer(mx); }); /* прокрутка дерева сохраняется: фон заблокирован */
+$('#miCardMx').addEventListener('click', function(){
+  closeMenu();
+  if (!currentNodeId){ return; }
+  var f = findNode(doc.root, currentNodeId);
+  if (f){ openMatrix(f.node); }
+});
+
+/* ===== Шапка редактора: экспорт и меню ===== */
 var sheetBk = $('#sheetBk');
 $('#btnExport').addEventListener('click', function(){ openLayer(sheetBk); });
 sheetBk.addEventListener('click', function(e){ if (e.target === sheetBk) closeLayer(sheetBk); });
 
 $('#btnMenu').addEventListener('click', function(){ openMenu($('#popMain'), $('#btnMenu')); });
-$('#miDelDoc').addEventListener('click', function(){ closeMenu(); confirmDlg('Удалить анализ целиком?'); });
-
-/* ===== Меню карточки последствия ===== */
-var currentCard = null;
-document.addEventListener('click', function(e){
-  var kb = e.target.closest('.kebab');
-  if (!kb) return;
-  currentCard = kb.closest('.csq');
-  var hasKids = !!(currentCard && currentCard.querySelector(':scope > .kids'));
-  $('#miCardMx').style.display = hasKids ? '' : 'none';
-  openMenu($('#popCard'), kb);
-});
-$('#miCardMx').addEventListener('click', function(){
+$('#miDelDoc').addEventListener('click', function(){
   closeMenu();
-  openLayer(mx); /* демо: показывается общий набор, узловая матрица появится на шаге 6 */
-});
-$('#miCardDel').addEventListener('click', function(){
-  closeMenu();
-  var n = currentCard ? currentCard.querySelectorAll('.csq').length + 1 : 1;
-  confirmDlg('Удалить последствие и вложенные карточки (' + n + ')?');
+  confirmDlg('Удалить анализ целиком?'); /* удаление документа: шаг 3 */
 });
 
-/* Меню документа в списке */
-$('#miDocDup').addEventListener('click', closeMenu); /* дублирование: шаг 3 */
+/* Меню документа в списке: логика на шаге 3 */
+$('#miDocDup').addEventListener('click', closeMenu);
 $('#miDocDel').addEventListener('click', function(){ closeMenu(); confirmDlg('Удалить анализ целиком?'); });
 
-/* ===== Свертывание веток: кнопка "А что потом?" и шеврон (п. 5.6-5.7) ===== */
-document.addEventListener('click', function(e){
-  var t = e.target.closest('.btn-what, .chev');
-  if (!t) return;
-  var card = t.closest('.csq');
-  if (!card || !card.querySelector(':scope > .kids')) return; /* добавление детей: шаг 2 */
-  var open = card.classList.toggle('open');
-  var w = card.querySelector(':scope > .csq-actions .btn-what');
-  if (w) w.setAttribute('aria-expanded', open ? 'true' : 'false');
-});
-
-/* ===== ВРЕМЕННО (шаг 1): демо-переключатели ===== */
+/* ===== ВРЕМЕННО (шаг 1): переключатель пустого списка, нужен до появления хранилища ===== */
 $('#demoEmpty').addEventListener('click', function(){
   var full = $('#listFull');
   var empty = $('#listEmpty');
@@ -963,27 +1231,19 @@ $('#demoEmpty').addEventListener('click', function(){
   empty.hidden = !showEmpty;
   this.textContent = showEmpty ? 'Демо шага 1: вернуть примеры' : 'Демо шага 1: пустой экран';
 });
-$('#miHint').addEventListener('click', function(){
-  closeMenu();
-  var h = $('#hintLine');
-  h.hidden = !h.hidden;
-});
-$('#miToast').addEventListener('click', function(){
-  closeMenu();
-  toast('Удалено карточек: 3', 'Вернуть');
-});
 
 /* ===== Закрытие по Escape (десктоп) ===== */
 document.addEventListener('keydown', function(e){
   if (e.key !== 'Escape') return;
   if (openPop){ closeMenu(); return; }
+  if (!dlgBk.hidden){ pendingOk = null; }
   closeLayer(dlgBk);
   closeLayer(aboutBk);
   closeLayer(sheetBk);
   closeLayer(mx);
 });
 
-/* ===== Плашка встроенного браузера (п. 8.1). Шаг 1: один раз за загрузку, sessionStorage позже ===== */
+/* ===== Плашка встроенного браузера (п. 8.1). Один раз за загрузку, sessionStorage на шаге 7 ===== */
 (function(){
   var ua = navigator.userAgent || '';
   var isIOS = /iPad|iPhone|iPod/.test(ua) ||
@@ -996,7 +1256,6 @@ document.addEventListener('keydown', function(e){
 /* ===== Старт ===== */
 applyTheme();
 go('scrList');
-growAll(document);
 })();
 </script>
 </body>
