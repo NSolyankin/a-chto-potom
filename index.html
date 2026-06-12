@@ -1,4 +1,4 @@
-<!-- А что потом? v0.3.0 | шаг 3 из 7: хранение и список | по ТЗ 1.0 от 12.06.2026 -->
+<!-- А что потом? v0.4.0 | шаг 4 из 7: экспорт md и Заметки | по ТЗ 1.0 от 12.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -477,17 +477,17 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
   </div>
 </div>
 
-<!-- ===== Лист: Экспорт (кнопки без логики до шагов 4-5) ===== -->
+<!-- ===== Лист: Экспорт (п. 7.1): ссылка-снимок и .json на шаге 5, печать на шаге 7 ===== -->
 <div class="layer-bk" id="sheetBk" hidden>
   <div class="sheet" role="dialog" aria-label="Экспорт">
     <div class="handle"></div>
     <h2>Экспорт</h2>
-    <button class="row"><svg class="icon"><use href="#i-copy"/></svg>Скопировать md</button>
-    <button class="row"><svg class="icon"><use href="#i-down"/></svg>Скачать .md</button>
-    <button class="row"><svg class="icon"><use href="#i-copy"/></svg>Скопировать для Заметок</button>
-    <button class="row"><svg class="icon"><use href="#i-link"/></svg>Скопировать ссылку-снимок</button>
-    <button class="row"><svg class="icon"><use href="#i-down"/></svg>Скачать .json</button>
-    <button class="row"><svg class="icon"><use href="#i-print"/></svg>Печать</button>
+    <button class="row" id="btnExpCopyMd"><svg class="icon"><use href="#i-copy"/></svg>Скопировать md</button>
+    <button class="row" id="btnExpDownMd"><svg class="icon"><use href="#i-down"/></svg>Скачать .md</button>
+    <button class="row" id="btnExpNotes"><svg class="icon"><use href="#i-copy"/></svg>Скопировать для Заметок</button>
+    <button class="row" id="btnExpLink"><svg class="icon"><use href="#i-link"/></svg>Скопировать ссылку-снимок</button>
+    <button class="row" id="btnExpJson"><svg class="icon"><use href="#i-down"/></svg>Скачать .json</button>
+    <button class="row" id="btnExpPrint"><svg class="icon"><use href="#i-print"/></svg>Печать</button>
   </div>
 </div>
 
@@ -551,8 +551,8 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v0.3.0';
-var APP_STEP = 'шаг 3 из 7: хранение и список';
+var APP_VERSION = 'v0.4.0';
+var APP_STEP = 'шаг 4 из 7: экспорт md и Заметки';
 
 function $(s, r){ return (r || document).querySelector(s); }
 function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -1277,6 +1277,167 @@ $('#miCardMx').addEventListener('click', function(){
 var sheetBk = $('#sheetBk');
 $('#btnExport').addEventListener('click', function(){ openLayer(sheetBk); });
 sheetBk.addEventListener('click', function(e){ if (e.target === sheetBk) closeLayer(sheetBk); });
+
+/* ===== Экспорт (п. 7.2-7.3) ===== */
+function flatLine(t){ return (t || '').replace(/\r?\n/g, ' '); }
+function docTitleLine(d){ return isFilled(d.root) ? flatLine(d.root.text) : 'Без названия'; }
+function mdMarker(n){
+  return '[' + (n.sign === 'plus' ? '+' : '-') + ' ' +
+    (n.horizon === 'near' ? 'близкое' : 'отдаленное') + ']';
+}
+function balanceLine(d){
+  var c = countersAll(d.root);
+  return 'Баланс: близкие +' + c.nearP + '/-' + c.nearM +
+    ', отдаленные +' + c.farP + '/-' + c.farM + '.';
+}
+
+/* Точный формат md из п. 7.2: отступ 4 пробела, строгие маркеры, пустые с детьми как (без текста) */
+function buildMd(d){
+  var title = docTitleLine(d);
+  var lines = [];
+  lines.push('# Анализ последствий: ' + title);
+  lines.push('');
+  lines.push('Дата: ' + fmtDate(d.updatedAt));
+  lines.push('');
+  lines.push('- РЕШЕНИЕ: ' + title);
+  (function walk(node, depth){
+    var g = grouped(node.children);
+    for (var i = 0; i < g.length; i++){
+      var ch = g[i];
+      if (!isFilled(ch) && !ch.children.length){ continue; }
+      var pad = new Array(depth + 1).join('    ');
+      lines.push(pad + '- ' + mdMarker(ch) + ' ' +
+        (isFilled(ch) ? flatLine(ch.text) : '(без текста)'));
+      walk(ch, depth + 1);
+    }
+  })(d.root, 1);
+  lines.push('');
+  lines.push(balanceLine(d));
+  return lines.join('\n') + '\n';
+}
+
+/* HTML для Заметок (п. 7.3): пользовательский текст входит только через textContent */
+function buildNotesHtml(d){
+  var title = docTitleLine(d);
+  var wrap = el('div');
+  var h1 = el('h1');
+  h1.textContent = 'Анализ последствий: ' + title;
+  var pd = el('p');
+  pd.textContent = 'Дата: ' + fmtDate(d.updatedAt);
+  var ul = el('ul');
+  var liRoot = el('li');
+  var br = el('b');
+  br.textContent = 'РЕШЕНИЕ:';
+  liRoot.appendChild(br);
+  liRoot.appendChild(document.createTextNode(' ' + title));
+  (function walk(node, li){
+    var g = grouped(node.children).filter(function(ch){
+      return isFilled(ch) || ch.children.length;
+    });
+    if (!g.length){ return; }
+    var u = el('ul');
+    g.forEach(function(ch){
+      var l = el('li');
+      var b = el('b');
+      b.setAttribute('style', 'color:' + (ch.sign === 'plus' ? '#2E7D52' : '#C2563B'));
+      b.textContent = mdMarker(ch);
+      l.appendChild(b);
+      l.appendChild(document.createTextNode(' ' +
+        (isFilled(ch) ? flatLine(ch.text) : '(без текста)')));
+      walk(ch, l);
+      u.appendChild(l);
+    });
+    li.appendChild(u);
+  })(d.root, liRoot);
+  ul.appendChild(liRoot);
+  var pb = el('p');
+  pb.textContent = balanceLine(d);
+  wrap.appendChild(h1); wrap.appendChild(pd); wrap.appendChild(ul); wrap.appendChild(pb);
+  var ser = new XMLSerializer();
+  var out = '';
+  for (var i = 0; i < wrap.childNodes.length; i++){
+    out += ser.serializeToString(wrap.childNodes[i]);
+  }
+  return out;
+}
+
+function legacyCopy(text, okMsg){
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  var ok = false;
+  try { ok = document.execCommand('copy'); } catch (e){}
+  document.body.removeChild(ta);
+  toast(ok ? okMsg : 'Не удалось скопировать');
+}
+function copyText(text, okMsg){
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(
+      function(){ toast(okMsg); },
+      function(){ legacyCopy(text, okMsg); }
+    );
+  } else {
+    legacyCopy(text, okMsg);
+  }
+}
+
+function fileStamp(){
+  var d = new Date();
+  var pad = function(n){ return (n < 10 ? '0' : '') + n; };
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+    '_' + pad(d.getHours()) + pad(d.getMinutes());
+}
+function downloadFile(name, text, mime){
+  var blob = new Blob([text], { type: mime });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+}
+
+$('#btnExpCopyMd').addEventListener('click', function(){
+  if (!doc){ return; }
+  closeLayer(sheetBk);
+  copyText(buildMd(doc), 'Скопировано');
+});
+
+$('#btnExpDownMd').addEventListener('click', function(){
+  if (!doc){ return; }
+  closeLayer(sheetBk);
+  downloadFile('a-chto-potom_' + fileStamp() + '.md', buildMd(doc), 'text/markdown;charset=utf-8');
+});
+
+$('#btnExpNotes').addEventListener('click', function(){
+  if (!doc){ return; }
+  closeLayer(sheetBk);
+  var md = buildMd(doc);
+  if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){
+    var item;
+    try {
+      item = new ClipboardItem({
+        'text/html': new Blob([buildNotesHtml(doc)], { type: 'text/html' }),
+        'text/plain': new Blob([md], { type: 'text/plain' })
+      });
+    } catch (e){
+      copyText(md, 'Скопирован простой текст');
+      return;
+    }
+    navigator.clipboard.write([item]).then(
+      function(){ toast('Скопировано'); },
+      function(){ copyText(md, 'Скопирован простой текст'); }
+    );
+  } else {
+    copyText(md, 'Скопирован простой текст');
+  }
+});
 
 $('#btnMenu').addEventListener('click', function(){ openMenu($('#popMain'), $('#btnMenu')); });
 $('#miDelDoc').addEventListener('click', function(){
