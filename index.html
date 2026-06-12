@@ -1,4 +1,4 @@
-<!-- А что потом? v1.1.0 | ТЗ 1.0 + дополнение: Сохранить в Obsidian | 12.06.2026 -->
+<!-- А что потом? v1.2.0 | ТЗ 1.0 + дополнения: Obsidian, Настройки | 12.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -174,6 +174,21 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
   background:var(--card);border:1px solid var(--line);border-radius:999px;
   padding:5px 12px;color:var(--text2);
 }
+.setdlg{max-width:460px;width:100%;max-height:min(84vh,680px);overflow:auto;text-align:left}
+.set-title{font-weight:600;font-size:17px;margin:0 0 14px}
+.set-row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;margin:0 0 16px}
+.set-label{font-size:15px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{padding:7px 12px;font-size:14px;color:var(--text2)}
+.seg button + button{border-left:1px solid var(--line)}
+.seg button.active{background:var(--accent);color:#FFFFFF;font-weight:600}
+html[data-theme="dark"] .seg button.active{color:#15171B}
+@media (prefers-color-scheme: dark){html[data-theme="auto"] .seg button.active{color:#15171B}}
+.set-about{border-top:1px solid var(--line);padding-top:12px}
+.set-h{font-weight:600;margin:14px 0 6px;font-size:15px}
+.set-about p{margin:0 0 10px;font-size:14px;line-height:1.55}
+.set-about .sub{color:var(--text2);margin-top:14px}
+.set-about .lnk{color:var(--accent);word-break:break-all}
 .snapbar{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--accent);border-radius:14px;padding:12px 14px;margin:0 0 14px;box-shadow:var(--shadow)}
 .snapbar p{margin:0;font-size:15px;line-height:1.4}
 .snaperr{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 16px;text-align:center;box-shadow:var(--shadow)}
@@ -411,6 +426,7 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></symbol>
   <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l2.5-2.5a5 5 0 0 0-7-7L11.5 5.5"/><path d="M14 11a5 5 0 0 0-7.5-.5L4 13a5 5 0 0 0 7 7l1.5-1.5"/></symbol>
+  <symbol id="i-set" viewBox="0 0 24 24"><path d="M4 7h9M19 7h1M4 12h3M13 12h7M4 17h11"/><circle cx="15.5" cy="7" r="2.2"/><circle cx="9.5" cy="12" r="2.2"/><circle cx="17.5" cy="17" r="2.2"/></symbol>
   <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 8V4h10v4"/><rect x="4" y="8" width="16" height="8" rx="2"/><path d="M7 13h10v7H7z"/></symbol>
 </svg>
 
@@ -419,6 +435,7 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
   <header class="bar">
     <div class="bar-in">
       <h1 class="bar-title">А что потом?</h1>
+      <button class="iconbtn" id="btnSettings" aria-label="Настройки"><svg class="icon"><use href="#i-set"/></svg></button>
     </div>
   </header>
   <main class="wrap">
@@ -539,12 +556,37 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
 
 <!-- ===== Диалог: О приложении ===== -->
 <div class="layer-bk center" id="aboutBk" hidden>
-  <div class="dlg" role="dialog" aria-labelledby="aboutTitle">
-    <p id="aboutTitle" style="font-weight:600">А что потом?</p>
-    <p class="sub" id="aboutVer">Версия</p>
-    <p class="lnk">https://github.com/NSolyankin/a-chto-potom</p>
+  <div class="dlg setdlg" role="dialog" aria-labelledby="aboutTitle">
+    <p id="aboutTitle" class="set-title">Настройки</p>
+
+    <div class="set-row">
+      <div class="set-label">Тема оформления</div>
+      <div class="seg" id="themeSeg" role="group" aria-label="Тема оформления">
+        <button data-theme-opt="auto">Авто</button>
+        <button data-theme-opt="light">Светлая</button>
+        <button data-theme-opt="dark">Темная</button>
+      </div>
+    </div>
+
+    <div class="set-about">
+      <p class="set-h">О приложении «А что потом?»</p>
+      <p>Инструмент анализа последствий решений. Помогает записать решение и разложить его последствия: положительные и отрицательные, близкие и отдаленные, чтобы увидеть картину целиком до того, как решение принято.</p>
+      <p>Методическая основа: принцип Владимира Тарасова «Побеждает тот, кто способен всесторонне оценить последствия своих решений». Приложение подталкивает к честному поиску минусов там, где видны одни плюсы, и наоборот.</p>
+      <p class="set-h">Как работать</p>
+      <p>Запишите решение и добавляйте последствия кнопками «+ Положительное» и «+ Отрицательное». У каждой карточки два свойства: знак (плюс или минус) и горизонт (близкое или отдаленное), оба переключаются касанием. Кнопка «А что потом?» раскрывает цепочку: у любого последствия есть свои последствия, глубина не ограничена. Плюсы всегда показываются перед минусами.</p>
+      <p>Счетчики баланса показывают соотношение плюсов и минусов по горизонтам, пустые карточки не считаются. Если при трех заполненных карточках нет ни одного минуса (или ни одного плюса), появляется методическая подсказка. Режим «Матрица» раскладывает прямые последствия по четырем квадрантам: знак на строках, горизонт на столбцах; матрица доступна для решения целиком и для любой ветки через меню карточки.</p>
+      <p class="set-h">Хранение и приватность</p>
+      <p>Анализы хранятся только в этом браузере на этом устройстве. Сервера нет, регистрации нет, после загрузки страница работает без сети. Важное сохраняйте ссылкой или файлом: при чистке данных браузера локальные анализы исчезнут.</p>
+      <p class="set-h">Обмен и экспорт</p>
+      <p>Ссылка-снимок несет весь анализ внутри адреса: получатель увидит дерево и сможет сохранить себе копию, ваши данные при этом никуда не отправляются. Доступны выгрузка и импорт .json, экспорт md для Obsidian, копирование для Заметок iPhone, прямое сохранение в Obsidian и печать в PDF.</p>
+      <p class="set-h">Советы для iPhone</p>
+      <p>Добавьте страницу на экран «Домой» (Поделиться, затем «На экран Домой»), и она будет запускаться как приложение на весь экран. Из Telegram открывайте сайт в Safari, чтобы анализы надежно сохранялись.</p>
+      <p class="sub" id="aboutVer">Версия</p>
+      <p class="lnk">https://github.com/NSolyankin/a-chto-potom</p>
+    </div>
+
     <div class="dlg-btns">
-      <button class="dlg-btn" id="aboutOk">Понятно</button>
+      <button class="dlg-btn" id="aboutOk">Закрыть</button>
     </div>
   </div>
 </div>
@@ -553,10 +595,9 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
 <div class="pop-bk" id="popBk" hidden></div>
 
 <div class="pop" id="popMain" hidden>
-  <button id="miTheme">Тема: <span id="miThemeVal">авто</span></button>
+  <button id="miAbout"><svg class="icon"><use href="#i-set"/></svg>Настройки</button>
   <hr>
   <button class="danger" id="miDelDoc"><svg class="icon"><use href="#i-trash"/></svg>Удалить анализ</button>
-  <button id="miAbout">О приложении</button>
 </div>
 
 <div class="pop" id="popCard" hidden>
@@ -599,8 +640,8 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.1.0';
-var APP_STEP = 'ТЗ 1.0 + дополнение: Obsidian';
+var APP_VERSION = 'v1.2.0';
+var APP_STEP = 'ТЗ 1.0 + дополнения: Obsidian, Настройки';
 
 function $(s, r){ return (r || document).querySelector(s); }
 function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -754,7 +795,6 @@ function go(id){
 
 /* ===== Тема (п. 9.3). Выбор живет в памяти, сохранение появится на шаге 3 ===== */
 var THEME_ORDER = ['auto', 'light', 'dark'];
-var THEME_NAMES = { auto: 'авто', light: 'светлая', dark: 'темная' };
 var COLOR_LIGHT = '#F6F5F1';
 var COLOR_DARK = '#15171B';
 var themeMode = THEME_ORDER.indexOf(store.settings.theme) !== -1 ? store.settings.theme : 'auto';
@@ -771,17 +811,21 @@ function applyTheme(){
       m.setAttribute('content', dark ? COLOR_DARK : COLOR_LIGHT);
     }
   });
-  $('#miThemeVal').textContent = THEME_NAMES[themeMode];
+  $$('#themeSeg [data-theme-opt]').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-theme-opt') === themeMode);
+  });
 }
 if (mediaDark.addEventListener){ mediaDark.addEventListener('change', applyTheme); }
 
-$('#miTheme').addEventListener('click', function(){
-  var i = THEME_ORDER.indexOf(themeMode);
-  themeMode = THEME_ORDER[(i + 1) % THEME_ORDER.length];
+$('#themeSeg').addEventListener('click', function(e){
+  var b = e.target.closest('[data-theme-opt]');
+  if (!b){ return; }
+  themeMode = b.getAttribute('data-theme-opt');
   store.settings.theme = themeMode;
   scheduleSave();
   applyTheme();
 });
+
 
 /* ===== Авторост текстовых полей ===== */
 function grow(el){
@@ -872,6 +916,7 @@ dlgBk.addEventListener('click', function(e){ if (e.target === dlgBk){ pendingOk 
 var aboutBk = $('#aboutBk');
 $('#aboutVer').textContent = 'Версия ' + APP_VERSION + ' (' + APP_STEP + ')';
 $('#miAbout').addEventListener('click', function(){ closeMenu(); openLayer(aboutBk); });
+$('#btnSettings').addEventListener('click', function(){ openLayer(aboutBk); });
 $('#aboutOk').addEventListener('click', function(){ closeLayer(aboutBk); });
 aboutBk.addEventListener('click', function(e){ if (e.target === aboutBk) closeLayer(aboutBk); });
 
