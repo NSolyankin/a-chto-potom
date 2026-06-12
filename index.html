@@ -1,4 +1,4 @@
-<!-- А что потом? v0.1.0 | шаг 1 из 7: каркас и стили | по ТЗ 1.0 от 12.06.2026 -->
+<!-- А что потом? v0.1.1 | шаг 1 из 7: каркас и стили | по ТЗ 1.0 от 12.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -750,7 +750,7 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v0.1.0';
+var APP_VERSION = 'v0.1.1';
 var APP_STEP = 'шаг 1 из 7: каркас и стили';
 
 var DEMO_TITLE = 'Проводить встречи группы по субботам утром';
@@ -805,9 +805,17 @@ $('#miTheme').addEventListener('click', function(){
 /* ===== Авторост текстовых полей ===== */
 function grow(el){
   el.style.height = 'auto';
-  el.style.height = el.scrollHeight + 'px';
+  var h = el.scrollHeight;
+  /* Поле внутри скрытого экрана измерить нельзя (высота 0): не трогаем, пересчет будет при показе */
+  if (h > 0){ el.style.height = h + 'px'; } else { el.style.height = ''; }
 }
 function growAll(root){ $$('textarea', root || document).forEach(grow); }
+/* Пересчет высот при изменении ширины окна: иначе после переноса строк поля выглядят обрезанными */
+var growRaf = null;
+window.addEventListener('resize', function(){
+  if (growRaf) return;
+  growRaf = requestAnimationFrame(function(){ growRaf = null; growAll(); });
+});
 document.addEventListener('input', function(e){
   if (e.target && e.target.tagName === 'TEXTAREA'){ grow(e.target); }
 });
