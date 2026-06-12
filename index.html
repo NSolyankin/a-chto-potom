@@ -1,4 +1,4 @@
-<!-- А что потом? v0.5.0 | шаг 5 из 7: ссылка-снимок и .json | по ТЗ 1.0 от 12.06.2026 -->
+<!-- А что потом? v1.0.0 | сборка завершена, шаги 1-7 | по ТЗ 1.0 от 12.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -289,6 +289,7 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
 .mx-qh.m{color:var(--minus)}
 .mx-item{padding:9px 0;font-size:15px;border-top:1px solid var(--line)}
 .mx-item:first-child{border-top:0}
+.mx-qh + .mx-item{border-top:0}
 .mx-more{display:block;font-size:13px;color:var(--text2);margin-top:2px}
 .mx-dash{width:18px;height:2px;border-radius:2px;background:var(--line);margin:24px auto}
 @media (max-width:699px){
@@ -378,6 +379,22 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
 
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation:none !important;transition:none !important}
+}
+
+/* ===== Печать (п. 7.7): только содержимое, черным по белому, поля 15 мм ===== */
+#printView{display:none}
+@page{margin:15mm}
+@media print{
+  html,body{background:#fff !important}
+  body > *{display:none !important}
+  #printView{display:block !important;color:#000;background:#fff;font-size:12pt;line-height:1.45}
+  #printView h1{font-size:16pt;margin:0 0 8pt;color:#000}
+  #printView .pdate{margin:0 0 12pt;font-size:11pt;color:#000}
+  #printView ul{margin:0;padding-left:16pt;list-style:none}
+  #printView > ul{padding-left:0}
+  #printView li{margin:0 0 4pt}
+  #printView .pmark{font-weight:700}
+  #printView .pbal{margin-top:12pt;font-weight:700}
 }
 </style>
 </head>
@@ -494,7 +511,7 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
   </div>
 </div>
 
-<!-- ===== Лист: Экспорт (п. 7.1): ссылка-снимок и .json на шаге 5, печать на шаге 7 ===== -->
+<!-- ===== Лист: Экспорт (п. 7.1) ===== -->
 <div class="layer-bk" id="sheetBk" hidden>
   <div class="sheet" role="dialog" aria-label="Экспорт">
     <div class="handle"></div>
@@ -563,6 +580,9 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
   <button id="bannerOk">Понятно</button>
 </div>
 
+<!-- Печатное представление (п. 7.7): наполняется скриптом перед печатью -->
+<div id="printView"></div>
+
 <script>
 /*
 LZ-String 1.5.0 (встроено: только сжатие ссылки-снимка)
@@ -578,8 +598,8 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v0.5.0';
-var APP_STEP = 'шаг 5 из 7: ссылка-снимок и .json';
+var APP_VERSION = 'v1.0.0';
+var APP_STEP = 'сборка по ТЗ 1.0, шаги 1-7';
 
 function $(s, r){ return (r || document).querySelector(s); }
 function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -1085,6 +1105,8 @@ function renderList(){
 }
 
 function goList(){
+  doc = null;
+  snapshotMode = false;
   store.activeDocId = null;
   scheduleSave();
   renderList();
@@ -1611,6 +1633,72 @@ $('#miDocDel').addEventListener('click', function(){
   });
 });
 
+/* ===== Печать (п. 7.7) ===== */
+var printView = $('#printView');
+function clearPrintView(){
+  while (printView.firstChild){ printView.removeChild(printView.firstChild); }
+}
+function buildPrintView(){
+  clearPrintView();
+  if (doc){
+    var title = docTitleLine(doc);
+    var h1 = el('h1');
+    h1.textContent = 'Анализ последствий: ' + title;
+    var pd = el('p', 'pdate');
+    pd.textContent = 'Дата: ' + fmtDate(doc.updatedAt);
+    var ul = el('ul');
+    var li = el('li');
+    var b = el('span', 'pmark');
+    b.textContent = 'РЕШЕНИЕ: ';
+    li.appendChild(b);
+    li.appendChild(document.createTextNode(title));
+    (function walk(node, host){
+      var g = grouped(node.children).filter(function(ch){
+        return isFilled(ch) || ch.children.length;
+      });
+      if (!g.length){ return; }
+      var u = el('ul');
+      g.forEach(function(ch){
+        var l = el('li');
+        var m = el('span', 'pmark');
+        m.textContent = mdMarker(ch) + ' ';
+        l.appendChild(m);
+        l.appendChild(document.createTextNode(isFilled(ch) ? flatLine(ch.text) : '(без текста)'));
+        walk(ch, l);
+        u.appendChild(l);
+      });
+      host.appendChild(u);
+    })(doc.root, li);
+    ul.appendChild(li);
+    var pb = el('p', 'pbal');
+    pb.textContent = balanceLine(doc);
+    printView.appendChild(h1);
+    printView.appendChild(pd);
+    printView.appendChild(ul);
+    printView.appendChild(pb);
+  } else {
+    var h = el('h1');
+    h.textContent = 'А что потом? Мои анализы';
+    printView.appendChild(h);
+    var u2 = el('ul');
+    docsSorted().forEach(function(dd){
+      var c = countersAll(dd.root);
+      var l2 = el('li');
+      l2.textContent = trim60(dd.root.text) + ' (' + fmtDate(dd.updatedAt) + '): близкие +' +
+        c.nearP + '/-' + c.nearM + ', отдаленные +' + c.farP + '/-' + c.farM;
+      u2.appendChild(l2);
+    });
+    printView.appendChild(u2);
+  }
+}
+$('#btnExpPrint').addEventListener('click', function(){
+  closeLayer(sheetBk);
+  buildPrintView();
+  window.print();
+});
+window.addEventListener('beforeprint', buildPrintView);
+window.addEventListener('afterprint', clearPrintView);
+
 /* ===== Закрытие по Escape (десктоп) ===== */
 document.addEventListener('keydown', function(e){
   if (e.key !== 'Escape') return;
@@ -1622,13 +1710,18 @@ document.addEventListener('keydown', function(e){
   closeLayer(mx);
 });
 
-/* ===== Плашка встроенного браузера (п. 8.1). Один раз за загрузку, sessionStorage на шаге 7 ===== */
+/* ===== Плашка встроенного браузера (п. 8.1): один раз за сессию ===== */
 (function(){
   var ua = navigator.userAgent || '';
   var isIOS = /iPad|iPhone|iPod/.test(ua) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   var embedded = /Telegram/i.test(ua) || (isIOS && !/Safari/i.test(ua));
-  if (embedded){ $('#bannerTg').hidden = false; }
+  var shown = false;
+  try { shown = sessionStorage.getItem('achtopotom_banner') === '1'; } catch (e){}
+  if (embedded && !shown){
+    $('#bannerTg').hidden = false;
+    try { sessionStorage.setItem('achtopotom_banner', '1'); } catch (e){}
+  }
   $('#bannerOk').addEventListener('click', function(){ $('#bannerTg').hidden = true; });
 })();
 
