@@ -1,4 +1,4 @@
-<!-- А что потом? v1.0.0 | сборка завершена, шаги 1-7 | по ТЗ 1.0 от 12.06.2026 -->
+<!-- А что потом? v1.1.0 | ТЗ 1.0 + дополнение: Сохранить в Obsidian | 12.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -519,6 +519,7 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
     <button class="row" id="btnExpCopyMd"><svg class="icon"><use href="#i-copy"/></svg>Скопировать md</button>
     <button class="row" id="btnExpDownMd"><svg class="icon"><use href="#i-down"/></svg>Скачать .md</button>
     <button class="row" id="btnExpNotes"><svg class="icon"><use href="#i-copy"/></svg>Скопировать для Заметок</button>
+    <button class="row" id="btnExpObsidian"><svg class="icon"><use href="#i-export"/></svg>Сохранить в Obsidian</button>
     <button class="row" id="btnExpLink"><svg class="icon"><use href="#i-link"/></svg>Скопировать ссылку-снимок</button>
     <button class="row" id="btnExpJson"><svg class="icon"><use href="#i-down"/></svg>Скачать .json</button>
     <button class="row" id="btnExpPrint"><svg class="icon"><use href="#i-print"/></svg>Печать</button>
@@ -598,8 +599,8 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.0.0';
-var APP_STEP = 'сборка по ТЗ 1.0, шаги 1-7';
+var APP_VERSION = 'v1.1.0';
+var APP_STEP = 'ТЗ 1.0 + дополнение: Obsidian';
 
 function $(s, r){ return (r || document).querySelector(s); }
 function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -1543,6 +1544,34 @@ $('#btnExpDownMd').addEventListener('click', function(){
   if (!doc){ return; }
   closeLayer(sheetBk);
   downloadFile('a-chto-potom_' + fileStamp() + '.md', buildMd(doc), 'text/markdown;charset=utf-8');
+});
+
+/* Дополнение v1.1.0: прямое сохранение в Obsidian через официальную схему obsidian://new.
+   Хранилище не указывается: откроется последнее использованное. Большое дерево не лезет
+   в адрес, поэтому при превышении порога предлагается копирование md. */
+function obsidianNoteName(){
+  var base = isFilled(doc.root) ? flatLine(doc.root.text) : 'Без названия';
+  base = base.replace(/[\\/:*?"<>|#^\[\]]/g, ' ').replace(/\s+/g, ' ');
+  if (base.length > 60){ base = base.slice(0, 60); }
+  return base + ' (' + fileStamp() + ')';
+}
+$('#btnExpObsidian').addEventListener('click', function(){
+  if (!doc){ return; }
+  closeLayer(sheetBk);
+  var md = buildMd(doc);
+  var url = 'obsidian://new?name=' + encodeURIComponent(obsidianNoteName()) +
+    '&content=' + encodeURIComponent(md);
+  if (url.length > 30000){
+    confirmDlg('Анализ слишком велик для прямой передачи в Obsidian. Скопировать md для вставки вручную?',
+      function(){ copyText(md, 'Скопировано'); },
+      'Скопировать');
+    return;
+  }
+  var a = document.createElement('a');
+  a.href = url;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 });
 
 /* Ссылка-снимок (п. 7.4) и выгрузка .json (п. 7.6) */
