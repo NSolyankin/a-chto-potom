@@ -1,4 +1,4 @@
-<!-- А что потом? v1.2.2 | Матрица всех последствий с проваливанием по веткам | 13.06.2026 -->
+<!-- А что потом? v1.2.3 | Web Share для .md и .json на iPhone | 13.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -539,11 +539,11 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
     <div class="handle"></div>
     <h2>Экспорт</h2>
     <button class="row" id="btnExpCopyMd"><svg class="icon"><use href="#i-copy"/></svg>Скопировать md</button>
-    <button class="row" id="btnExpDownMd"><svg class="icon"><use href="#i-down"/></svg>Скачать .md</button>
+    <button class="row" id="btnExpDownMd"><svg class="icon"><use href="#i-export"/></svg>Поделиться .md</button>
     <button class="row" id="btnExpNotes"><svg class="icon"><use href="#i-copy"/></svg>Скопировать для Заметок</button>
     <button class="row" id="btnExpObsidian"><svg class="icon"><use href="#i-export"/></svg>Сохранить в Obsidian</button>
     <button class="row" id="btnExpLink"><svg class="icon"><use href="#i-link"/></svg>Скопировать ссылку-снимок</button>
-    <button class="row" id="btnExpJson"><svg class="icon"><use href="#i-down"/></svg>Скачать .json</button>
+    <button class="row" id="btnExpJson"><svg class="icon"><use href="#i-export"/></svg>Поделиться .json</button>
     <button class="row" id="btnExpPrint"><svg class="icon"><use href="#i-print"/></svg>Печать</button>
   </div>
 </div>
@@ -645,7 +645,7 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.2.2';
+var APP_VERSION = 'v1.2.3';
 var APP_STEP = 'ТЗ 1.0 + дополнения, исправления';
 
 function $(s, r){ return (r || document).querySelector(s); }
@@ -1649,6 +1649,24 @@ function downloadFile(name, text, mime){
   document.body.removeChild(a);
   setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
 }
+/* Дополнение v1.2.3: на iPhone родной лист "Поделиться" (Файлы, Заметки, Telegram).
+   Решает капризы скачивания через ссылку в standalone-режиме iOS. Десктоп и браузеры
+   без общего доступа к файлам откатываются на обычное скачивание. */
+function shareOrDownload(name, text, mime){
+  if (navigator.canShare){
+    try {
+      var file = new File([text], name, { type: mime });
+      if (navigator.canShare({ files: [file] })){
+        navigator.share({ files: [file], title: name }).catch(function(err){
+          if (err && err.name === 'AbortError'){ return; } /* пользователь отменил лист */
+          downloadFile(name, text, mime);                  /* иной сбой - откат на скачивание */
+        });
+        return;
+      }
+    } catch (e){ /* File или canShare недоступны - откат ниже */ }
+  }
+  downloadFile(name, text, mime);
+}
 
 $('#btnExpCopyMd').addEventListener('click', function(){
   if (!doc){ return; }
@@ -1659,7 +1677,7 @@ $('#btnExpCopyMd').addEventListener('click', function(){
 $('#btnExpDownMd').addEventListener('click', function(){
   if (!doc){ return; }
   closeLayer(sheetBk);
-  downloadFile('a-chto-potom_' + fileStamp() + '.md', buildMd(doc), 'text/markdown;charset=utf-8');
+  shareOrDownload('a-chto-potom_' + fileStamp() + '.md', buildMd(doc), 'text/markdown');
 });
 
 /* Дополнение v1.1.0: прямое сохранение в Obsidian через официальную схему obsidian://new.
@@ -1712,7 +1730,7 @@ $('#btnExpJson').addEventListener('click', function(){
   for (var k in doc){
     if (Object.prototype.hasOwnProperty.call(doc, k)){ data[k] = doc[k]; }
   }
-  downloadFile('a-chto-potom_' + fileStamp() + '.json', JSON.stringify(data), 'application/json');
+  shareOrDownload('a-chto-potom_' + fileStamp() + '.json', JSON.stringify(data), 'application/json');
 });
 
 $('#btnExpNotes').addEventListener('click', function(){
