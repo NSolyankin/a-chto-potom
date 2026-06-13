@@ -1,4 +1,4 @@
-<!-- А что потом? v1.2.4 | Цитаты В.К. Тарасова дословно, тумблер в настройках | 13.06.2026 -->
+<!-- А что потом? v1.2.5 | Индикатор полноты анализа и подсказки | 13.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -335,6 +335,13 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 .sheet .row:first-of-type{border-top:0}
 .sheet .row .icon{color:var(--accent)}
 .sheet .row:active{background:var(--press)}
+.pill.comp{color:var(--accent);cursor:pointer}
+.comp-row{display:flex;align-items:flex-start;gap:10px;padding:11px 2px;border-top:1px solid var(--line);font-size:15px}
+.comp-row:first-child{border-top:0}
+.comp-row .comp-mark{flex:0 0 auto;width:20px;text-align:center;font-weight:700;color:var(--text2)}
+.comp-row.done .comp-mark{color:var(--plus)}
+.comp-row .comp-txt{color:var(--text2)}
+.comp-row.done .comp-txt{color:var(--text)}
 
 .dlg{
   background:var(--card);border:1px solid var(--card-border);border-radius:14px;
@@ -502,6 +509,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
     <div class="balance">
       <span class="pill">близкие: <span class="np" id="bNearP">+0</span> / <span class="nm" id="bNearM">-0</span></span>
       <span class="pill">отдаленные: <span class="np" id="bFarP">+0</span> / <span class="nm" id="bFarM">-0</span></span>
+      <button type="button" class="pill comp" id="compPill" aria-label="Полнота анализа, подробнее">полнота 0 из 5</button>
     </div>
 
     <!-- Методическая подсказка (п. 5.4) -->
@@ -548,6 +556,15 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
   </div>
 </div>
 
+<!-- ===== Лист: полнота анализа (раздел 3.1) ===== -->
+<div class="layer-bk" id="compBk" hidden>
+  <div class="sheet" role="dialog" aria-label="Полнота анализа">
+    <div class="handle"></div>
+    <h2>Полнота анализа</h2>
+    <div id="compList"></div>
+  </div>
+</div>
+
 <!-- ===== Диалог подтверждения ===== -->
 <div class="layer-bk center" id="dlgBk" hidden>
   <div class="dlg" role="alertdialog" aria-labelledby="dlgText">
@@ -574,8 +591,8 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
     </div>
 
     <div class="set-row">
-      <div class="set-label">Подсказки с цитатами</div>
-      <div class="seg" id="quoteSeg" role="group" aria-label="Подсказки с цитатами">
+      <div class="set-label">Подсказки</div>
+      <div class="seg" id="quoteSeg" role="group" aria-label="Подсказки">
         <button data-quote-opt="on">Вкл</button>
         <button data-quote-opt="off">Выкл</button>
       </div>
@@ -653,7 +670,7 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.2.4';
+var APP_VERSION = 'v1.2.5';
 var APP_STEP = 'ТЗ 1.0 + дополнения, исправления';
 
 function $(s, r){ return (r || document).querySelector(s); }
@@ -879,6 +896,74 @@ $('#quoteSeg').addEventListener('click', function(e){
   applyQuotes();
 });
 
+/* ===== Индикатор полноты анализа (5 критериев, считается из дерева, в хранилище не пишется).
+   Вложенный счет по самой глубокой ЗАПОЛНЕННОЙ мысли: глубже включает мельче. ===== */
+function maxFilledDepth(root){
+  var max = 0;
+  (function walk(n, depth){
+    for (var i = 0; i < n.children.length; i++){
+      var c = n.children[i];
+      var d = depth + 1;
+      if (isFilled(c) && d > max){ max = d; }
+      walk(c, d);
+    }
+  })(root, 0);
+  return max;
+}
+function completeness(d){
+  var c = countersAll(d.root);
+  var md = maxFilledDepth(d.root);
+  var crit = [
+    isFilled(d.root),
+    c.p > 0 && c.m > 0,
+    (c.nearP + c.nearM) > 0 && (c.farP + c.farM) > 0,
+    md >= 2,
+    md >= 3
+  ];
+  var n = 0;
+  for (var i = 0; i < crit.length; i++){ if (crit[i]){ n++; } }
+  return { n: n, crit: crit };
+}
+var COMP_DONE = [
+  'Решение сформулировано',
+  'Есть и плюсы, и минусы',
+  'Есть и близкие, и отдаленные',
+  'Применен вопрос «а что потом?»',
+  'Глубина дошла до третьего уровня'
+];
+var COMP_TODO = [
+  'Сформулируйте решение в строке решения',
+  'Найдите и плюсы, и минусы',
+  'Что изменится не сразу, а через год?',
+  'Возьмите последствие и спросите: а что потом?',
+  'Протяните самую важную цепочку еще на шаг вглубь'
+];
+var compBk = $('#compBk');
+function updateComp(){
+  if (!doc){ return; }
+  $('#compPill').textContent = 'полнота ' + completeness(doc).n + ' из 5';
+}
+function buildCompList(){
+  var r = completeness(doc);
+  var host = $('#compList');
+  while (host.firstChild){ host.removeChild(host.firstChild); }
+  for (var i = 0; i < 5; i++){
+    var row = el('div', 'comp-row' + (r.crit[i] ? ' done' : ''));
+    var mark = el('span', 'comp-mark');
+    mark.textContent = r.crit[i] ? '\u2713' : '\u25CB';
+    var txt = el('span', 'comp-txt');
+    txt.textContent = r.crit[i] ? COMP_DONE[i] : COMP_TODO[i];
+    row.appendChild(mark); row.appendChild(txt);
+    host.appendChild(row);
+  }
+}
+$('#compPill').addEventListener('click', function(){
+  if (!doc){ return; }
+  buildCompList();
+  openLayer(compBk);
+});
+compBk.addEventListener('click', function(e){ if (e.target === compBk){ closeLayer(compBk); } });
+
 
 /* ===== Авторост текстовых полей ===== */
 function grow(el){
@@ -1081,17 +1166,27 @@ function updateBalance(){
   $('#bNearM').textContent = '-' + c.nearM;
   $('#bFarP').textContent = '+' + c.farP;
   $('#bFarM').textContent = '-' + c.farM;
+  updateComp();
 }
 
 function updateHint(){
-  var c = countersAll(doc.root);
   var h = $('#hintLine');
-  if (quotesOn() && c.total >= 3 && (c.m === 0 || c.p === 0)){
-    h.textContent = '«' + TARASOV_QUOTES[0] + '»';
-    h.hidden = false;
-  } else {
-    h.hidden = true;
+  if (!quotesOn()){ h.hidden = true; return; }
+  var c = countersAll(doc.root);
+  var anyDeeper = false;
+  for (var i = 0; i < doc.root.children.length; i++){
+    if (doc.root.children[i].children.length){ anyDeeper = true; break; }
   }
+  if (c.total >= 3 && (c.m === 0 || c.p === 0)){
+    h.textContent = '«' + TARASOV_QUOTES[0] + '»';
+  } else if (c.total >= 2 && !anyDeeper){
+    h.textContent = 'У каждого последствия есть свои последствия. Возьмите самое весомое и спросите: а что потом?';
+  } else if (c.total >= 2 && (c.farP + c.farM) === 0){
+    h.textContent = 'Отдаленные последствия часто весят больше близких. Что изменится через год?';
+  } else {
+    h.hidden = true; return;
+  }
+  h.hidden = false;
 }
 
 /* Перерисовка с сохранением фокуса, выделения и прокрутки (п. 5.10) */
@@ -1183,7 +1278,7 @@ function renderList(){
     var t = el('span', 'doc-title');
     t.textContent = trim60(d.root.text);
     var meta = el('span', 'doc-meta');
-    meta.textContent = fmtDate(d.updatedAt);
+    meta.textContent = fmtDate(d.updatedAt) + ' \u00B7 полнота ' + completeness(d).n + '/5';
     var c = countersAll(d.root);
     var sum = el('span', 'doc-sum');
     sumPart(sum, 'близкие ', c.nearP, c.nearM);
@@ -1335,6 +1430,7 @@ document.addEventListener('input', function(e){
   touch();
   if (f.node === doc.root){
     edTitle.textContent = trim60(ta.value);
+    updateComp();
   } else {
     updateBalance();
     updateHint();
@@ -1877,10 +1973,13 @@ function buildPrintView(){
     ul.appendChild(li);
     var pb = el('p', 'pbal');
     pb.textContent = balanceLine(doc);
+    var pc = el('p', 'pbal');
+    pc.textContent = 'Полнота: ' + completeness(doc).n + ' из 5';
     printView.appendChild(h1);
     printView.appendChild(pd);
     printView.appendChild(ul);
     printView.appendChild(pb);
+    printView.appendChild(pc);
   } else {
     var h = el('h1');
     h.textContent = 'А что потом? Мои анализы';
@@ -1890,7 +1989,8 @@ function buildPrintView(){
       var c = countersAll(dd.root);
       var l2 = el('li');
       l2.textContent = trim60(dd.root.text) + ' (' + fmtDate(dd.updatedAt) + '): близкие +' +
-        c.nearP + '/-' + c.nearM + ', отдаленные +' + c.farP + '/-' + c.farM;
+        c.nearP + '/-' + c.nearM + ', отдаленные +' + c.farP + '/-' + c.farM +
+        '; полнота ' + completeness(dd).n + '/5';
       u2.appendChild(l2);
     });
     printView.appendChild(u2);
@@ -1913,6 +2013,7 @@ document.addEventListener('keydown', function(e){
   closeLayer(dlgBk);
   closeLayer(aboutBk);
   closeLayer(sheetBk);
+  closeLayer(compBk);
   closeLayer(mx);
 });
 
