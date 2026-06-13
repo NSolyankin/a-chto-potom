@@ -1,4 +1,4 @@
-<!-- А что потом? v1.2.0 | ТЗ 1.0 + дополнения: Obsidian, Настройки | 12.06.2026 -->
+<!-- А что потом? v1.2.2 | Матрица всех последствий с проваливанием по веткам | 13.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -147,12 +147,12 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
   box-shadow:var(--shadow);padding:14px 10px 14px 16px;margin:0 0 12px;width:100%;text-align:left;
 }
 .doc-main{flex:1;min-width:0}
-.doc-title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.doc-meta{font-size:13px;color:var(--text2);margin-top:2px}
-.doc-sum{font-size:13px;color:var(--text2);margin-top:6px}
+.doc-title{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-meta{display:block;font-size:13px;color:var(--text2);margin-top:2px}
+.doc-sum{display:block;font-size:13px;color:var(--text2);margin-top:6px}
 .np{color:var(--plus);font-weight:600}
 .nm{color:var(--minus);font-weight:600}
-.doc .iconbtn{width:40px;height:40px;margin:-6px 0 0 0;color:var(--text2)}
+.doc .iconbtn{flex:0 0 auto;width:40px;height:40px;margin:-6px 0 0 0;color:var(--text2)}
 .list-actions{margin-top:16px}
 .storenote{font-size:13px;color:var(--text2);text-align:center;margin:24px 0 0}
 
@@ -287,6 +287,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 }
 .mx-node{flex:1;min-width:0;font-weight:600}
 .mx-close{color:var(--accent);font-weight:600;min-height:44px;padding:0 8px;border-radius:10px;flex:0 0 auto}
+.mx-back{color:var(--accent);font-weight:600;min-height:44px;padding:0 8px;border-radius:10px;flex:0 0 auto}
 .mx-wrap{
   max-width:880px;margin:0 auto;padding:16px;
   padding-left:calc(16px + env(safe-area-inset-left));
@@ -306,6 +307,9 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 .mx-item:first-child{border-top:0}
 .mx-qh + .mx-item{border-top:0}
 .mx-more{display:block;font-size:13px;color:var(--text2);margin-top:2px}
+.mx-open{cursor:pointer}
+.mx-open .mx-more{color:var(--accent)}
+.mx-open:active{background:var(--press)}
 .mx-dash{width:18px;height:2px;border-radius:2px;background:var(--line);margin:24px auto}
 @media (max-width:699px){
   .mx-grid{display:block}
@@ -519,6 +523,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 <div class="mx" id="mx" hidden>
   <div class="mx-head">
     <div class="mx-head-in">
+      <button class="mx-back" id="mxBack" aria-label="Назад" hidden>Назад</button>
       <div class="mx-node" id="mxNode"></div>
       <button class="mx-close" id="mxClose">Закрыть</button>
     </div>
@@ -640,8 +645,8 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.2.0';
-var APP_STEP = 'ТЗ 1.0 + дополнения: Obsidian, Настройки';
+var APP_VERSION = 'v1.2.2';
+var APP_STEP = 'ТЗ 1.0 + дополнения, исправления';
 
 function $(s, r){ return (r || document).querySelector(s); }
 function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -1068,6 +1073,7 @@ function rerender(focusId){
 }
 
 function enterEditor(d, asSnapshot){
+  hideToast();
   doc = d;
   snapshotMode = !!asSnapshot;
   $('#snapBar').hidden = !snapshotMode;
@@ -1131,11 +1137,9 @@ function renderList(){
     var t = el('span', 'doc-title');
     t.textContent = trim60(d.root.text);
     var meta = el('span', 'doc-meta');
-    meta.style.display = 'block';
     meta.textContent = fmtDate(d.updatedAt);
     var c = countersAll(d.root);
     var sum = el('span', 'doc-sum');
-    sum.style.display = 'block';
     sumPart(sum, 'близкие ', c.nearP, c.nearM);
     sumPart(sum, ', отдаленные ', c.farP, c.farM);
     main.appendChild(t); main.appendChild(meta); main.appendChild(sum);
@@ -1151,9 +1155,12 @@ function renderList(){
 }
 
 function goList(){
+  var wasSnapshot = snapshotMode;
+  hideToast();
   doc = null;
   snapshotMode = false;
   store.activeDocId = null;
+  if (wasSnapshot){ clearHash(); }
   scheduleSave();
   renderList();
   go('scrList');
@@ -1171,6 +1178,16 @@ docListEl.addEventListener('click', function(e){
   }
   var d = store.docs[card.getAttribute('data-id')];
   if (d){ enterEditor(d); }
+});
+docListEl.addEventListener('keydown', function(e){
+  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar'){ return; }
+  var kb = e.target && e.target.closest ? e.target.closest('.kebab-doc') : null;
+  if (!kb){ return; }
+  var card = kb.closest('.doc');
+  if (!card){ return; }
+  e.preventDefault();
+  currentDocId = card.getAttribute('data-id');
+  openMenu($('#popDoc'), kb);
 });
 
 $$('[data-new]').forEach(function(b){
@@ -1197,7 +1214,13 @@ $('#snapSave').addEventListener('click', function(){
 });
 
 /* ===== Белый список полей (пп. 7.5-7.6, 10.1): чужие данные не доверяются ===== */
-function sanitizeNode(raw){
+var MAX_DEPTH = 60;     /* предел вложенности недоверенного дерева (защита вкладки от рекурсии) */
+var MAX_NODES = 20000;  /* предел числа узлов недоверенного дерева */
+function sanitizeNode(raw, depth, ctx){
+  if (ctx.limit){
+    if (depth > MAX_DEPTH){ throw new Error('глубина'); }
+    if (++ctx.count > MAX_NODES){ throw new Error('размер'); }
+  }
   var n = makeNode(raw && raw.sign === 'minus' ? 'minus' : 'plus',
                    raw && raw.horizon === 'far' ? 'far' : 'near');
   if (raw && typeof raw.text === 'string'){ n.text = raw.text.slice(0, 2000); }
@@ -1205,16 +1228,18 @@ function sanitizeNode(raw){
   if (raw && Array.isArray(raw.children)){
     for (var i = 0; i < raw.children.length; i++){
       var c = raw.children[i];
-      if (c && typeof c === 'object'){ n.children.push(sanitizeNode(c)); }
+      if (c && typeof c === 'object'){ n.children.push(sanitizeNode(c, depth + 1, ctx)); }
     }
   }
   return n;
 }
-function sanitizeDoc(raw){
+/* trusted=true: данные из своего хранилища (Дублировать), id регенерируем, но лимиты не применяем */
+function sanitizeDoc(raw, trusted){
   var src = raw && typeof raw === 'object' && raw.doc && typeof raw.doc === 'object' ? raw.doc : raw;
   if (!src || typeof src !== 'object' || !src.root || typeof src.root !== 'object'){
     throw new Error('структура');
   }
+  var ctx = { count: 0, limit: !trusted };
   var d = makeDoc();
   if (typeof src.createdAt === 'string'){ d.createdAt = src.createdAt; }
   d.lastHorizon = src.lastHorizon === 'far' ? 'far' : 'near';
@@ -1222,7 +1247,7 @@ function sanitizeDoc(raw){
   if (Array.isArray(src.root.children)){
     for (var i = 0; i < src.root.children.length; i++){
       var c = src.root.children[i];
-      if (c && typeof c === 'object'){ d.root.children.push(sanitizeNode(c)); }
+      if (c && typeof c === 'object'){ d.root.children.push(sanitizeNode(c, 1, ctx)); }
     }
   }
   return d;
@@ -1393,38 +1418,56 @@ var mx = $('#mx');
 var SIGN_LABEL = { plus: 'Положительные', minus: 'Отрицательные' };
 var HOR_LABEL = { near: 'Близкие', far: 'Отдаленные' };
 var QH_LABEL = { near: 'близкие', far: 'отдаленные' };
+var mxStack = [];
 
-function mxCell(node, sign, hor){
+/* v2: собрать ВСЕ заполненные последствия ветки на любой глубине по квадрантам;
+   порядок - обход в глубину в порядке отображения дерева (плюсы перед минусами) */
+function mxCollect(node){
+  var q = { 'plus|near': [], 'plus|far': [], 'minus|near': [], 'minus|far': [] };
+  (function walk(x){
+    var g = grouped(x.children);
+    for (var i = 0; i < g.length; i++){
+      var c = g[i];
+      if (isFilled(c)){ q[c.sign + '|' + c.horizon].push(c); }
+      walk(c);
+    }
+  })(node);
+  return q;
+}
+function mxCell(items, sign, hor){
   var cell = el('div', 'mx-cell');
   var qh = el('div', 'mx-qh ' + (sign === 'plus' ? 'p' : 'm'));
   qh.textContent = SIGN_LABEL[sign] + ' ' + QH_LABEL[hor];
   cell.appendChild(qh);
-  var shown = 0;
-  for (var i = 0; i < node.children.length; i++){
-    var c = node.children[i];
-    if (c.sign !== sign || c.horizon !== hor){ continue; }
-    if (!isFilled(c) && !c.children.length){ continue; } /* пустые без детей в счет не идут */
+  for (var i = 0; i < items.length; i++){
+    var c = items[i];
     var item = el('div', 'mx-item');
-    item.appendChild(document.createTextNode(isFilled(c) ? c.text.trim() : '(без текста)'));
+    item.appendChild(document.createTextNode(c.text.trim()));
     if (c.children.length){
+      item.className = 'mx-item mx-open';
+      item.setAttribute('data-id', c.id);
+      item.setAttribute('role', 'button');
+      item.setAttribute('tabindex', '0');
+      var d = descFilled(c);
       var more = el('span', 'mx-more');
-      more.textContent = 'еще ' + (subtreeCount(c) - 1) + ' внутри';
+      more.textContent = 'открыть ветку (' + (d.p + d.m) + ')';
       item.appendChild(more);
     }
     cell.appendChild(item);
-    shown++;
   }
-  if (!shown){
+  if (!items.length){
     var dash = el('div', 'mx-dash');
     dash.setAttribute('role', 'presentation');
     cell.appendChild(dash);
   }
   return cell;
 }
-
-function openMatrix(node){
+function renderMatrix(){
+  var node = mxStack[mxStack.length - 1];
   $('#mxNode').textContent = node.text.trim() ||
     (node === doc.root ? 'Без названия' : '(без текста)');
+  $('#mxBack').hidden = mxStack.length <= 1;
+  var q = mxCollect(node);
   var g = $('#mxGrid');
   while (g.firstChild){ g.removeChild(g.firstChild); }
   g.appendChild(el('div'));
@@ -1434,14 +1477,42 @@ function openMatrix(node){
     var rl = el('div', 'mx-rl ' + (sign === 'plus' ? 'p' : 'm'));
     rl.textContent = SIGN_LABEL[sign];
     g.appendChild(rl);
-    g.appendChild(mxCell(node, sign, 'near'));
-    g.appendChild(mxCell(node, sign, 'far'));
+    g.appendChild(mxCell(q[sign + '|near'], sign, 'near'));
+    g.appendChild(mxCell(q[sign + '|far'], sign, 'far'));
   });
+}
+function openMatrix(node){
+  mxStack = [node];
+  renderMatrix();
   openLayer(mx);
+  mx.scrollTop = 0;
+}
+function mxPush(node){
+  mxStack.push(node);
+  renderMatrix();
+  mx.scrollTop = 0;
+}
+function mxBack(){
+  if (mxStack.length > 1){ mxStack.pop(); renderMatrix(); }
 }
 
 $('#btnMatrix').addEventListener('click', function(){ openMatrix(doc.root); });
-$('#mxClose').addEventListener('click', function(){ closeLayer(mx); }); /* прокрутка дерева сохраняется: фон заблокирован */
+$('#mxClose').addEventListener('click', function(){ closeLayer(mx); mxStack = []; }); /* прокрутка дерева сохраняется: фон заблокирован */
+$('#mxBack').addEventListener('click', mxBack);
+$('#mxGrid').addEventListener('click', function(e){
+  var it = e.target && e.target.closest ? e.target.closest('.mx-open') : null;
+  if (!it){ return; }
+  var f = findNode(mxStack[mxStack.length - 1], it.getAttribute('data-id'));
+  if (f){ mxPush(f.node); }
+});
+$('#mxGrid').addEventListener('keydown', function(e){
+  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar'){ return; }
+  var it = e.target && e.target.closest ? e.target.closest('.mx-open') : null;
+  if (!it){ return; }
+  e.preventDefault();
+  var f = findNode(mxStack[mxStack.length - 1], it.getAttribute('data-id'));
+  if (f){ mxPush(f.node); }
+});
 $('#miCardMx').addEventListener('click', function(){
   closeMenu();
   if (!currentNodeId){ return; }
@@ -1673,11 +1744,8 @@ $('#miDelDoc').addEventListener('click', function(){
   closeMenu();
   confirmDlg('Удалить анализ целиком?', function(){
     if (doc){ delete store.docs[doc.id]; }
-    doc = null;
-    store.activeDocId = null;
     saveNow();
-    renderList();
-    go('scrList');
+    goList();
   });
 });
 
@@ -1686,8 +1754,7 @@ $('#miDocDup').addEventListener('click', function(){
   closeMenu();
   var src = currentDocId && store.docs[currentDocId];
   if (!src){ return; }
-  var copy = JSON.parse(JSON.stringify(src));
-  copy.id = uid();
+  var copy = sanitizeDoc(src, true);
   var now = new Date().toISOString();
   copy.createdAt = now;
   copy.updatedAt = now;
@@ -1777,6 +1844,7 @@ window.addEventListener('afterprint', clearPrintView);
 document.addEventListener('keydown', function(e){
   if (e.key !== 'Escape') return;
   if (openPop){ closeMenu(); return; }
+  if (!mx.hidden && mxStack.length > 1){ mxBack(); return; }
   if (!dlgBk.hidden){ pendingOk = null; }
   closeLayer(dlgBk);
   closeLayer(aboutBk);
