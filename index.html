@@ -1,4 +1,4 @@
-<!-- А что потом? v1.2.5 | Индикатор полноты анализа и подсказки | 13.06.2026 -->
+<!-- А что потом? v1.3.0 | Режим Схема: визуальное дерево последствий в SVG | 13.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -401,6 +401,18 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
   min-height:32px;padding:4px 12px;
 }
 
+/* ===== Схема ===== */
+.sch{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column}
+.sch-head{background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top);flex:0 0 auto}
+.sch-head-in{display:flex;align-items:center;gap:8px;padding:8px 12px 0;padding-left:calc(12px + env(safe-area-inset-left));padding-right:calc(12px + env(safe-area-inset-right))}
+.sch-title{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sch-tools{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 12px 6px;padding-left:calc(12px + env(safe-area-inset-left));padding-right:calc(12px + env(safe-area-inset-right))}
+.sch-act{color:var(--accent);font-weight:600;min-height:44px;padding:0 8px;border-radius:10px;flex:0 0 auto;font-size:15px}
+.sch-wrap{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+.sch-svg{display:block}
+.sch-node{cursor:pointer}
+.sch-cap{flex:0 0 auto;border-top:1px solid var(--line);background:var(--card);padding:10px 16px;padding-left:calc(16px + env(safe-area-inset-left));padding-right:calc(16px + env(safe-area-inset-right));padding-bottom:calc(10px + env(safe-area-inset-bottom));font-size:14px;color:var(--text);max-height:30vh;overflow:auto}
+
 /* Скрытие демо-частей в режиме нового анализа */
 
 @media (prefers-reduced-motion: reduce){
@@ -439,6 +451,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
   <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l2.5-2.5a5 5 0 0 0-7-7L11.5 5.5"/><path d="M14 11a5 5 0 0 0-7.5-.5L4 13a5 5 0 0 0 7 7l1.5-1.5"/></symbol>
   <symbol id="i-set" viewBox="0 0 24 24"><path d="M4 7h9M19 7h1M4 12h3M13 12h7M4 17h11"/><circle cx="15.5" cy="7" r="2.2"/><circle cx="9.5" cy="12" r="2.2"/><circle cx="17.5" cy="17" r="2.2"/></symbol>
   <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 8V4h10v4"/><rect x="4" y="8" width="16" height="8" rx="2"/><path d="M7 13h10v7H7z"/></symbol>
+  <symbol id="i-tree" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.1"/><circle cx="6.5" cy="18" r="2.1"/><circle cx="17.5" cy="18" r="2.1"/><path d="M12 7.1v3.4M6.5 15.9v-3.4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v3.4"/></symbol>
 </svg>
 
 <!-- ===== Экран: Список ===== -->
@@ -489,6 +502,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
       <button class="iconbtn" id="btnBack" aria-label="Назад к списку"><svg class="icon"><use href="#i-back"/></svg></button>
       <h1 class="bar-title" id="edTitle">Без названия</h1>
       <button class="iconbtn" id="btnMatrix" aria-label="Матрица"><svg class="icon"><use href="#i-mx"/></svg></button>
+      <button class="iconbtn" id="btnScheme" aria-label="Схема"><svg class="icon"><use href="#i-tree"/></svg></button>
       <button class="iconbtn" id="btnExport" aria-label="Экспорт"><svg class="icon"><use href="#i-export"/></svg></button>
       <button class="iconbtn" id="btnMenu" aria-label="Меню"><svg class="icon"><use href="#i-dots"/></svg></button>
     </div>
@@ -539,6 +553,22 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
   <div class="mx-wrap">
     <div class="mx-grid" id="mxGrid"></div>
   </div>
+</div>
+
+<!-- ===== Слой: Схема (визуальное дерево последствий) ===== -->
+<div class="sch" id="sch" hidden>
+  <div class="sch-head">
+    <div class="sch-head-in">
+      <div class="sch-title" id="schTitle"></div>
+      <button class="sch-act" id="schClose">Закрыть</button>
+    </div>
+    <div class="sch-tools">
+      <button class="sch-act" id="schFlip" aria-label="Сменить ориентацию">Сверху вниз</button>
+      <button class="sch-act" id="schShare" aria-label="Поделиться схемой">Поделиться</button>
+    </div>
+  </div>
+  <div class="sch-wrap" id="schWrap"></div>
+  <div class="sch-cap" id="schCap" hidden></div>
 </div>
 
 <!-- ===== Лист: Экспорт (п. 7.1) ===== -->
@@ -604,7 +634,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
       <p>Методическая основа: принцип Владимира Тарасова «Побеждает тот, кто способен всесторонне оценить последствия своих решений». Приложение подталкивает к честному поиску минусов там, где видны одни плюсы, и наоборот.</p>
       <p class="set-h">Как работать</p>
       <p>Запишите решение и добавляйте последствия кнопками «+ Положительное» и «+ Отрицательное». У каждой карточки два свойства: знак (плюс или минус) и горизонт (близкое или отдаленное), оба переключаются касанием. Кнопка «А что потом?» раскрывает цепочку: у любого последствия есть свои последствия, глубина не ограничена. Плюсы всегда показываются перед минусами.</p>
-      <p>Счетчики баланса показывают соотношение плюсов и минусов по горизонтам, пустые карточки не считаются. Если при трех заполненных карточках нет ни одного минуса (или ни одного плюса), появляется методическая подсказка. Режим «Матрица» раскладывает прямые последствия по четырем квадрантам: знак на строках, горизонт на столбцах; матрица доступна для решения целиком и для любой ветки через меню карточки.</p>
+      <p>Счетчики баланса показывают соотношение плюсов и минусов по горизонтам, пустые карточки не считаются. Если при трех заполненных карточках нет ни одного минуса (или ни одного плюса), появляется методическая подсказка. Режим «Матрица» раскладывает прямые последствия по четырем квадрантам: знак на строках, горизонт на столбцах; матрица доступна для решения целиком и для любой ветки через меню карточки. Режим «Схема» рисует те же последствия деревом: цвет узла означает знак, в шапке указан горизонт; ориентацию можно переключать, а схему - сохранить картинкой SVG.</p>
       <p class="set-h">Хранение и приватность</p>
       <p>Анализы хранятся только в этом браузере на этом устройстве. Сервера нет, регистрации нет, после загрузки страница работает без сети. Важное сохраняйте ссылкой или файлом: при чистке данных браузера локальные анализы исчезнут.</p>
       <p class="set-h">Обмен и экспорт</p>
@@ -632,6 +662,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 
 <div class="pop" id="popCard" hidden>
   <button id="miCardMx"><svg class="icon"><use href="#i-mx"/></svg>Показать матрицей</button>
+  <button id="miCardScheme"><svg class="icon"><use href="#i-tree"/></svg>Показать схемой</button>
   <button class="danger" id="miCardDel"><svg class="icon"><use href="#i-trash"/></svg>Удалить</button>
 </div>
 
@@ -670,8 +701,8 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.2.5';
-var APP_STEP = 'ТЗ 1.0 + дополнения, исправления';
+var APP_VERSION = 'v1.3.0';
+var APP_STEP = 'ТЗ 1.0 + дополнения, режим Схема';
 
 function $(s, r){ return (r || document).querySelector(s); }
 function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -1521,6 +1552,7 @@ document.addEventListener('click', function(e){
   currentNodeId = card.getAttribute('data-id');
   var f = findNode(doc.root, currentNodeId);
   $('#miCardMx').style.display = (f && f.node.children.length) ? '' : 'none';
+  $('#miCardScheme').style.display = (f && f.node.children.length) ? '' : 'none';
   openMenu($('#popCard'), kb);
 });
 
@@ -1660,6 +1692,320 @@ $('#miCardMx').addEventListener('click', function(){
   if (!currentNodeId){ return; }
   var f = findNode(doc.root, currentNodeId);
   if (f){ openMatrix(f.node); }
+});
+
+/* ===== Схема: визуальное дерево последствий (SVG, без foreignObject) ===== */
+var sch = $('#sch');
+var SCHNS = 'http://www.w3.org/2000/svg';
+var schRoot = null;        /* узел, от которого строится схема */
+var schOrient = 'tb';      /* 'tb' сверху вниз, 'lr' слева направо */
+var schSel = null;         /* выбранная группа узла */
+var schLineColor = '';     /* цвет линий текущего рендера (для сброса выделения) */
+var schAccent = '';        /* цвет акцента текущего рендера (для выделения) */
+
+var SCH_BOX_W = 168;
+var SCH_BOX_H = 80;
+var SCH_HEAD_H = 20;
+var SCH_PAD_X = 10;
+var SCH_GAP_X = 26;
+var SCH_GAP_Y = 46;
+var SCH_MARGIN = 20;
+var SCH_MAX_LINES = 3;
+
+function schR1(n){ return Math.round(n * 10) / 10; }
+
+function schSvg(name, attrs){
+  var e = document.createElementNS(SCHNS, name);
+  if (attrs){ for (var k in attrs){ if (attrs.hasOwnProperty(k)){ e.setAttribute(k, attrs[k]); } } }
+  return e;
+}
+
+/* Посчитанные цвета активной темы - чтобы экспортированный SVG был самодостаточным */
+function schColors(){
+  var cs = getComputedStyle(document.documentElement);
+  function pick(name, fb){
+    var v = cs.getPropertyValue(name);
+    v = v ? v.replace(/\s+/g, '') : '';
+    return v || fb;
+  }
+  return {
+    bg: pick('--bg', '#ffffff'),
+    card: pick('--card', '#ffffff'),
+    text: pick('--text', '#20242a'),
+    line: pick('--line', '#e3e1db'),
+    accent: pick('--accent', '#34507b'),
+    plus: pick('--plus', '#2e7d52'),
+    minus: pick('--minus', '#c2563b')
+  };
+}
+
+/* Контрастный цвет текста на цветной шапке (черный или белый по яркости) */
+function schTextOn(hex){
+  var h = String(hex).replace('#', '');
+  if (h.length === 3){ h = h.charAt(0) + h.charAt(0) + h.charAt(1) + h.charAt(1) + h.charAt(2) + h.charAt(2); }
+  var r = parseInt(h.substr(0, 2), 16) || 0;
+  var g = parseInt(h.substr(2, 2), 16) || 0;
+  var b = parseInt(h.substr(4, 2), 16) || 0;
+  var lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return lum > 0.62 ? '#1b1b1b' : '#ffffff';
+}
+
+/* В схему берем только ветви, где есть хотя бы одно заполненное последствие
+   (пустые листья пропускаем, как в экспорте md; пустые промежуточные - "(без текста)") */
+function schHasFilled(n){
+  if (isFilled(n)){ return true; }
+  for (var i = 0; i < n.children.length; i++){ if (schHasFilled(n.children[i])){ return true; } }
+  return false;
+}
+function schKids(n){
+  var g = grouped(n.children);
+  var out = [];
+  for (var i = 0; i < g.length; i++){ if (schHasFilled(g[i])){ out.push(g[i]); } }
+  return out;
+}
+
+/* Перенос текста по числу символов: до maxLines строк, дальше многоточие */
+function schWrap(t, maxChars, maxLines){
+  t = String(t || '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+  var lines = [];
+  var rest = t;
+  while (rest.length && lines.length < maxLines){
+    if (rest.length <= maxChars){ lines.push(rest); rest = ''; break; }
+    var slice = rest.slice(0, maxChars + 1);
+    var sp = slice.lastIndexOf(' ');
+    var cut = sp > 0 ? sp : maxChars;
+    lines.push(rest.slice(0, cut).replace(/\s+$/, ''));
+    rest = rest.slice(cut).replace(/^\s+/, '');
+  }
+  if (rest.length && lines.length){
+    var last = lines[lines.length - 1];
+    while (last.length && last.length + 1 > maxChars){ last = last.slice(0, -1); }
+    lines[lines.length - 1] = last.replace(/\s+$/, '') + '\u2026';
+  }
+  return lines;
+}
+
+/* Раскладка по ячейкам в два прохода, без наложений; данные узлов не меняем */
+function schLayout(root, orient){
+  var nodes = [], edges = [];
+  var cellsMap = {};
+  function cells(n){
+    var ch = schKids(n);
+    if (!ch.length){ cellsMap[n.id] = 1; return 1; }
+    var s = 0;
+    for (var i = 0; i < ch.length; i++){ s += cells(ch[i]); }
+    cellsMap[n.id] = s;
+    return s;
+  }
+  cells(root);
+  var maxDepth = 0;
+  function place(n, depth, startCell){
+    if (depth > maxDepth){ maxDepth = depth; }
+    var c = cellsMap[n.id];
+    var center = startCell + c / 2;
+    var bx, by;
+    if (orient === 'tb'){
+      bx = schR1(SCH_MARGIN + center * (SCH_BOX_W + SCH_GAP_X) - SCH_BOX_W / 2);
+      by = schR1(SCH_MARGIN + depth * (SCH_BOX_H + SCH_GAP_Y));
+    } else {
+      by = schR1(SCH_MARGIN + center * (SCH_BOX_H + SCH_GAP_Y) - SCH_BOX_H / 2);
+      bx = schR1(SCH_MARGIN + depth * (SCH_BOX_W + SCH_GAP_X));
+    }
+    var rec = { node: n, x: bx, y: by, w: SCH_BOX_W, h: SCH_BOX_H,
+      cx: schR1(bx + SCH_BOX_W / 2), cy: schR1(by + SCH_BOX_H / 2) };
+    nodes.push(rec);
+    var ch = schKids(n), off = startCell;
+    for (var i = 0; i < ch.length; i++){
+      var crec = place(ch[i], depth + 1, off);
+      off += cellsMap[ch[i].id];
+      if (orient === 'tb'){
+        edges.push({ x1: rec.cx, y1: schR1(rec.y + rec.h), x2: crec.cx, y2: crec.y });
+      } else {
+        edges.push({ x1: schR1(rec.x + rec.w), y1: rec.cy, x2: crec.x, y2: crec.cy });
+      }
+    }
+    return rec;
+  }
+  place(root, 0, 0);
+  var W, H;
+  if (orient === 'tb'){
+    W = schR1(SCH_MARGIN * 2 + cellsMap[root.id] * (SCH_BOX_W + SCH_GAP_X));
+    H = schR1(SCH_MARGIN * 2 + maxDepth * (SCH_BOX_H + SCH_GAP_Y) + SCH_BOX_H);
+  } else {
+    H = schR1(SCH_MARGIN * 2 + cellsMap[root.id] * (SCH_BOX_H + SCH_GAP_Y));
+    W = schR1(SCH_MARGIN * 2 + maxDepth * (SCH_BOX_W + SCH_GAP_X) + SCH_BOX_W);
+  }
+  return { nodes: nodes, edges: edges, w: W, h: H };
+}
+
+function schElbow(e, orient){
+  if (orient === 'tb'){
+    var my = schR1((e.y1 + e.y2) / 2);
+    return 'M' + e.x1 + ' ' + e.y1 + ' V' + my + ' H' + e.x2 + ' V' + e.y2;
+  }
+  var mx = schR1((e.x1 + e.x2) / 2);
+  return 'M' + e.x1 + ' ' + e.y1 + ' H' + mx + ' V' + e.y2 + ' H' + e.x2;
+}
+
+/* Путь шапки со скругленными только верхними углами */
+function schTopPath(x, y, w, r){
+  return 'M' + (x + r) + ' ' + y +
+    ' H' + (x + w - r) +
+    ' A' + r + ' ' + r + ' 0 0 1 ' + (x + w) + ' ' + (y + r) +
+    ' V' + (y + SCH_HEAD_H) +
+    ' H' + x +
+    ' V' + (y + r) +
+    ' A' + r + ' ' + r + ' 0 0 1 ' + (x + r) + ' ' + y + ' Z';
+}
+
+function schDrawNode(svg, rec, colors, maxChars){
+  var n = rec.node;
+  var isDecision = (n === doc.root);
+  var isFocus = (n === schRoot);
+  var headColor = isDecision ? colors.accent : (n.sign === 'plus' ? colors.plus : colors.minus);
+  var headText = isDecision ? 'Решение' : (n.horizon === 'near' ? 'близкое' : 'отдаленное');
+  var bodyText;
+  if (isFilled(n)){ bodyText = n.text; }
+  else if (isDecision){ bodyText = 'Без названия'; }
+  else { bodyText = '(без текста)'; }
+
+  var g = schSvg('g', { 'class': 'sch-node', 'data-id': n.id, role: 'button', tabindex: '0' });
+  var body = schSvg('rect', { x: rec.x, y: rec.y, width: rec.w, height: rec.h, rx: 10,
+    fill: colors.card, stroke: colors.line, 'stroke-width': isFocus ? 2 : 1, 'data-sw': isFocus ? 2 : 1 });
+  body.setAttribute('class', 'sch-body');
+  g.appendChild(body);
+  g.appendChild(schSvg('path', { d: schTopPath(rec.x, rec.y, rec.w, 10), fill: headColor }));
+  var ht = schSvg('text', { x: schR1(rec.x + rec.w / 2), y: schR1(rec.y + SCH_HEAD_H / 2),
+    'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': 12, 'font-weight': 600,
+    fill: schTextOn(headColor) });
+  ht.appendChild(document.createTextNode(headText));
+  g.appendChild(ht);
+  var lines = schWrap(bodyText, maxChars, SCH_MAX_LINES);
+  var bt = schSvg('text', { x: schR1(rec.x + SCH_PAD_X), y: schR1(rec.y + SCH_HEAD_H + 16),
+    'font-size': 13, fill: colors.text });
+  for (var i = 0; i < lines.length; i++){
+    var ts = schSvg('tspan', { x: schR1(rec.x + SCH_PAD_X), dy: i === 0 ? 0 : 16 });
+    ts.appendChild(document.createTextNode(lines[i]));
+    bt.appendChild(ts);
+  }
+  g.appendChild(bt);
+  svg.appendChild(g);
+}
+
+function schRender(){
+  var colors = schColors();
+  schLineColor = colors.line;
+  schAccent = colors.accent;
+  var L = schLayout(schRoot, schOrient);
+  var wrap = $('#schWrap');
+  while (wrap.firstChild){ wrap.removeChild(wrap.firstChild); }
+  var svg = schSvg('svg', { width: L.w, height: L.h, viewBox: '0 0 ' + L.w + ' ' + L.h });
+  svg.setAttribute('class', 'sch-svg');
+  svg.setAttribute('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif');
+  svg.appendChild(schSvg('rect', { x: 0, y: 0, width: L.w, height: L.h, fill: colors.bg }));
+  var i;
+  for (i = 0; i < L.edges.length; i++){
+    svg.appendChild(schSvg('path', { d: schElbow(L.edges[i], schOrient), fill: 'none',
+      stroke: colors.line, 'stroke-width': 1.5 }));
+  }
+  var maxChars = Math.max(6, Math.floor((SCH_BOX_W - SCH_PAD_X * 2) / 7.3));
+  for (i = 0; i < L.nodes.length; i++){ schDrawNode(svg, L.nodes[i], colors, maxChars); }
+  wrap.appendChild(svg);
+  schSel = null;
+  schCap('');
+}
+
+function schCap(txt){
+  var cap = $('#schCap');
+  if (!txt){ cap.hidden = true; cap.textContent = ''; return; }
+  cap.textContent = txt;
+  cap.hidden = false;
+}
+
+function schNodeFrom(target, root){
+  var t = target;
+  while (t && t !== root){
+    if (t.getAttribute){
+      var cl = t.getAttribute('class');
+      if (cl && (' ' + cl + ' ').indexOf(' sch-node ') !== -1){ return t; }
+    }
+    t = t.parentNode;
+  }
+  return null;
+}
+
+function schClearSel(){
+  if (!schSel){ return; }
+  var b = schSel.querySelector('.sch-body');
+  if (b){ b.setAttribute('stroke', schLineColor); b.setAttribute('stroke-width', b.getAttribute('data-sw') || 1); }
+  schSel = null;
+}
+
+function schPick(g){
+  schClearSel();
+  schSel = g;
+  var b = g.querySelector('.sch-body');
+  if (b){ b.setAttribute('stroke', schAccent); b.setAttribute('stroke-width', 2.5); }
+  var f = findNode(schRoot, g.getAttribute('data-id'));
+  if (f){
+    var txt;
+    if (isFilled(f.node)){ txt = f.node.text.replace(/^\s+|\s+$/g, ''); }
+    else if (f.node === doc.root){ txt = 'Без названия'; }
+    else { txt = '(без текста)'; }
+    schCap(txt);
+  }
+}
+
+function openScheme(node){
+  schRoot = node;
+  var title = node.text ? node.text.replace(/^\s+|\s+$/g, '') : '';
+  if (!title){ title = (node === doc.root) ? 'Без названия' : '(без текста)'; }
+  $('#schTitle').textContent = title;
+  $('#schFlip').textContent = (schOrient === 'tb') ? 'Сверху вниз' : 'Слева направо';
+  schRender();
+  openLayer(sch);
+  var w = $('#schWrap');
+  w.scrollTop = 0; w.scrollLeft = 0;
+}
+
+$('#btnScheme').addEventListener('click', function(){ if (doc){ openScheme(doc.root); } });
+$('#schClose').addEventListener('click', function(){ closeLayer(sch); schRoot = null; schSel = null; });
+$('#schFlip').addEventListener('click', function(){
+  schOrient = (schOrient === 'tb') ? 'lr' : 'tb';
+  $('#schFlip').textContent = (schOrient === 'tb') ? 'Сверху вниз' : 'Слева направо';
+  schRender();
+  var w = $('#schWrap');
+  w.scrollTop = 0; w.scrollLeft = 0;
+});
+$('#schWrap').addEventListener('click', function(ev){
+  var g = schNodeFrom(ev.target, this);
+  if (g){ schPick(g); } else { schClearSel(); schCap(''); }
+});
+$('#schWrap').addEventListener('keydown', function(ev){
+  if (ev.key !== 'Enter' && ev.key !== ' ' && ev.key !== 'Spacebar'){ return; }
+  var g = schNodeFrom(ev.target, this);
+  if (g){ ev.preventDefault(); schPick(g); }
+});
+$('#miCardScheme').addEventListener('click', function(){
+  closeMenu();
+  if (!currentNodeId){ return; }
+  var f = findNode(doc.root, currentNodeId);
+  if (f){ openScheme(f.node); }
+});
+
+/* Поделиться схемой как SVG-файлом (надежный путь без холста; PNG - отдельным шагом позже) */
+function schSerialize(){
+  var svg = $('#schWrap').querySelector('svg');
+  if (!svg){ return ''; }
+  var s = new XMLSerializer().serializeToString(svg);
+  if (s.indexOf('xmlns=') === -1){ s = s.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"'); }
+  return '<?xml version="1.0" encoding="UTF-8"?>\n' + s;
+}
+$('#schShare').addEventListener('click', function(){
+  if (!schRoot){ return; }
+  var txt = schSerialize();
+  if (!txt){ return; }
+  shareOrDownload('a-chto-potom_shema_' + fileStamp() + '.svg', txt, 'image/svg+xml');
 });
 
 /* ===== Шапка редактора: экспорт и меню ===== */
