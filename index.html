@@ -1,4 +1,4 @@
-<!-- А что потом? v1.3.0 | Режим Схема: визуальное дерево последствий в SVG | 13.06.2026 -->
+<!-- А что потом? v1.3.1 | Схема: масштаб жестом и экспорт PNG | 13.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -406,11 +406,16 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 .sch-head{background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top);flex:0 0 auto}
 .sch-head-in{display:flex;align-items:center;gap:8px;padding:8px 12px 0;padding-left:calc(12px + env(safe-area-inset-left));padding-right:calc(12px + env(safe-area-inset-right))}
 .sch-title{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sch-tools{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 12px 6px;padding-left:calc(12px + env(safe-area-inset-left));padding-right:calc(12px + env(safe-area-inset-right))}
+.sch-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:2px 12px 6px;padding-left:calc(12px + env(safe-area-inset-left));padding-right:calc(12px + env(safe-area-inset-right))}
 .sch-act{color:var(--accent);font-weight:600;min-height:44px;padding:0 8px;border-radius:10px;flex:0 0 auto;font-size:15px}
-.sch-wrap{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+.sch-wrap{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;touch-action:none;position:relative}
 .sch-svg{display:block}
 .sch-node{cursor:pointer}
+#schFlip{margin-right:auto}
+.sch-zoom{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:3}
+.sch-zoom button{width:44px;height:44px;border-radius:12px;background:var(--card);border:1px solid var(--line);color:var(--text);font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.18);cursor:pointer}
+.sch-zoom button:active{background:var(--line)}
+.sch-zoom .icon{width:22px;height:22px}
 .sch-cap{flex:0 0 auto;border-top:1px solid var(--line);background:var(--card);padding:10px 16px;padding-left:calc(16px + env(safe-area-inset-left));padding-right:calc(16px + env(safe-area-inset-right));padding-bottom:calc(10px + env(safe-area-inset-bottom));font-size:14px;color:var(--text);max-height:30vh;overflow:auto}
 
 /* Скрытие демо-частей в режиме нового анализа */
@@ -452,6 +457,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
   <symbol id="i-set" viewBox="0 0 24 24"><path d="M4 7h9M19 7h1M4 12h3M13 12h7M4 17h11"/><circle cx="15.5" cy="7" r="2.2"/><circle cx="9.5" cy="12" r="2.2"/><circle cx="17.5" cy="17" r="2.2"/></symbol>
   <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 8V4h10v4"/><rect x="4" y="8" width="16" height="8" rx="2"/><path d="M7 13h10v7H7z"/></symbol>
   <symbol id="i-tree" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.1"/><circle cx="6.5" cy="18" r="2.1"/><circle cx="17.5" cy="18" r="2.1"/><path d="M12 7.1v3.4M6.5 15.9v-3.4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v3.4"/></symbol>
+  <symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
 </svg>
 
 <!-- ===== Экран: Список ===== -->
@@ -564,10 +570,16 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
     </div>
     <div class="sch-tools">
       <button class="sch-act" id="schFlip" aria-label="Сменить ориентацию">Сверху вниз</button>
-      <button class="sch-act" id="schShare" aria-label="Поделиться схемой">Поделиться</button>
+      <button class="sch-act" id="schShare" aria-label="Поделиться схемой в SVG">Поделиться SVG</button>
+      <button class="sch-act" id="schPng" aria-label="Сохранить схему в PNG">Сохранить PNG</button>
     </div>
   </div>
   <div class="sch-wrap" id="schWrap"></div>
+  <div class="sch-zoom">
+    <button id="schZoomIn" aria-label="Увеличить">+</button>
+    <button id="schZoomFit" aria-label="По размеру"><svg class="icon"><use href="#i-fit"/></svg></button>
+    <button id="schZoomOut" aria-label="Уменьшить">−</button>
+  </div>
   <div class="sch-cap" id="schCap" hidden></div>
 </div>
 
@@ -701,8 +713,8 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.3.0';
-var APP_STEP = 'ТЗ 1.0 + дополнения, режим Схема';
+var APP_VERSION = 'v1.3.1';
+var APP_STEP = 'ТЗ 1.0 + дополнения, схема: масштаб и PNG';
 
 function $(s, r){ return (r || document).querySelector(s); }
 function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -1702,6 +1714,54 @@ var schOrient = 'tb';      /* 'tb' сверху вниз, 'lr' слева нап
 var schSel = null;         /* выбранная группа узла */
 var schLineColor = '';     /* цвет линий текущего рендера (для сброса выделения) */
 var schAccent = '';        /* цвет акцента текущего рендера (для выделения) */
+var schWrapEl = $('#schWrap');
+var schScale = 1;          /* масштаб схемы на экране */
+var schBaseW = 0;          /* натуральная ширина полотна (масштаб и экспорт) */
+var schBaseH = 0;          /* натуральная высота полотна */
+var SCH_MIN = 0.2;         /* минимальный масштаб */
+var SCH_MAX = 4;           /* максимальный масштаб */
+var schPan = null;         /* перетаскивание одним пальцем */
+var schPinch = null;       /* щипок двумя пальцами */
+var schMoved = false;
+var schSuppressClick = false;
+
+function schClamp(v, lo, hi){ return v < lo ? lo : (v > hi ? hi : v); }
+
+function schApplyZoom(){
+  var svg = schWrapEl.querySelector('svg');
+  if (svg){ svg.style.width = schR1(schBaseW * schScale) + 'px'; svg.style.height = schR1(schBaseH * schScale) + 'px'; }
+}
+
+function schCenter(){
+  var sw = schBaseW * schScale, sh = schBaseH * schScale;
+  if (schOrient === 'tb'){
+    schWrapEl.scrollLeft = Math.max(0, (sw - schWrapEl.clientWidth) / 2);
+    schWrapEl.scrollTop = 0;
+  } else {
+    schWrapEl.scrollTop = Math.max(0, (sh - schWrapEl.clientHeight) / 2);
+    schWrapEl.scrollLeft = 0;
+  }
+}
+
+function schFit(){
+  var vw = schWrapEl.clientWidth, vh = schWrapEl.clientHeight;
+  if (!vw || !vh || !schBaseW || !schBaseH){ schScale = 1; }
+  else { schScale = schClamp(Math.min(vw / schBaseW, vh / schBaseH), SCH_MIN, 1); }
+  schApplyZoom();
+  schCenter();
+}
+
+function schZoomAt(mult, fx, fy){
+  var baseX = (schWrapEl.scrollLeft + fx) / schScale;
+  var baseY = (schWrapEl.scrollTop + fy) / schScale;
+  schScale = schClamp(schScale * mult, SCH_MIN, SCH_MAX);
+  schApplyZoom();
+  schWrapEl.scrollLeft = baseX * schScale - fx;
+  schWrapEl.scrollTop = baseY * schScale - fy;
+}
+
+function schZoomBy(mult){ schZoomAt(mult, schWrapEl.clientWidth / 2, schWrapEl.clientHeight / 2); }
+
 
 var SCH_BOX_W = 168;
 var SCH_BOX_H = 80;
@@ -1897,6 +1957,7 @@ function schRender(){
   schLineColor = colors.line;
   schAccent = colors.accent;
   var L = schLayout(schRoot, schOrient);
+  schBaseW = L.w; schBaseH = L.h;
   var wrap = $('#schWrap');
   while (wrap.firstChild){ wrap.removeChild(wrap.firstChild); }
   var svg = schSvg('svg', { width: L.w, height: L.h, viewBox: '0 0 ' + L.w + ' ' + L.h });
@@ -1962,10 +2023,9 @@ function openScheme(node){
   if (!title){ title = (node === doc.root) ? 'Без названия' : '(без текста)'; }
   $('#schTitle').textContent = title;
   $('#schFlip').textContent = (schOrient === 'tb') ? 'Сверху вниз' : 'Слева направо';
-  schRender();
   openLayer(sch);
-  var w = $('#schWrap');
-  w.scrollTop = 0; w.scrollLeft = 0;
+  schRender();
+  schFit();
 }
 
 $('#btnScheme').addEventListener('click', function(){ if (doc){ openScheme(doc.root); } });
@@ -1974,18 +2034,83 @@ $('#schFlip').addEventListener('click', function(){
   schOrient = (schOrient === 'tb') ? 'lr' : 'tb';
   $('#schFlip').textContent = (schOrient === 'tb') ? 'Сверху вниз' : 'Слева направо';
   schRender();
-  var w = $('#schWrap');
-  w.scrollTop = 0; w.scrollLeft = 0;
+  schFit();
 });
-$('#schWrap').addEventListener('click', function(ev){
+schWrapEl.addEventListener('click', function(ev){
+  if (schSuppressClick){ schSuppressClick = false; schMoved = false; return; }
   var g = schNodeFrom(ev.target, this);
   if (g){ schPick(g); } else { schClearSel(); schCap(''); }
 });
-$('#schWrap').addEventListener('keydown', function(ev){
+schWrapEl.addEventListener('keydown', function(ev){
   if (ev.key !== 'Enter' && ev.key !== ' ' && ev.key !== 'Spacebar'){ return; }
   var g = schNodeFrom(ev.target, this);
   if (g){ ev.preventDefault(); schPick(g); }
 });
+
+/* Масштаб щипком (две точки) и перетаскивание одним пальцем на сенсорном экране */
+function schTwoDist(t){ var dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY; return Math.sqrt(dx * dx + dy * dy); }
+schWrapEl.addEventListener('touchstart', function(e){
+  if (e.touches.length === 2){
+    var r = schWrapEl.getBoundingClientRect();
+    var mx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left;
+    var my = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top;
+    schPinch = { dist: schTwoDist(e.touches), scale: schScale, fx: mx, fy: my,
+      baseX: (schWrapEl.scrollLeft + mx) / schScale, baseY: (schWrapEl.scrollTop + my) / schScale };
+    schPan = null; schMoved = true;
+    e.preventDefault();
+  } else if (e.touches.length === 1){
+    schPan = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    schPinch = null; schMoved = false;
+  }
+}, { passive: false });
+schWrapEl.addEventListener('touchmove', function(e){
+  if (schPinch && e.touches.length >= 2){
+    e.preventDefault();
+    var nd = schTwoDist(e.touches);
+    if (schPinch.dist > 0){
+      schScale = schClamp(schPinch.scale * (nd / schPinch.dist), SCH_MIN, SCH_MAX);
+      schApplyZoom();
+      schWrapEl.scrollLeft = schPinch.baseX * schScale - schPinch.fx;
+      schWrapEl.scrollTop = schPinch.baseY * schScale - schPinch.fy;
+    }
+    schSuppressClick = true;
+  } else if (schPan && e.touches.length === 1){
+    var dx = e.touches[0].clientX - schPan.x;
+    var dy = e.touches[0].clientY - schPan.y;
+    if (!schMoved && (Math.abs(dx) > 6 || Math.abs(dy) > 6)){ schMoved = true; }
+    if (schMoved){
+      e.preventDefault();
+      schWrapEl.scrollLeft -= dx;
+      schWrapEl.scrollTop -= dy;
+      schPan.x = e.touches[0].clientX;
+      schPan.y = e.touches[0].clientY;
+      schSuppressClick = true;
+    }
+  }
+}, { passive: false });
+schWrapEl.addEventListener('touchend', function(e){
+  if (e.touches.length === 0){
+    schPan = null; schPinch = null;
+    if (schSuppressClick){ setTimeout(function(){ schSuppressClick = false; schMoved = false; }, 60); }
+    else { schMoved = false; }
+  } else if (e.touches.length === 1){
+    schPinch = null;
+    schPan = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    schMoved = true;
+  }
+});
+
+/* Масштаб колесом с Ctrl/Cmd на десктопе (обычное колесо прокручивает) */
+schWrapEl.addEventListener('wheel', function(e){
+  if (!e.ctrlKey && !e.metaKey){ return; }
+  e.preventDefault();
+  var r = schWrapEl.getBoundingClientRect();
+  schZoomAt(e.deltaY < 0 ? 1.12 : (1 / 1.12), e.clientX - r.left, e.clientY - r.top);
+}, { passive: false });
+
+$('#schZoomIn').addEventListener('click', function(){ schZoomBy(1.25); });
+$('#schZoomOut').addEventListener('click', function(){ schZoomBy(0.8); });
+$('#schZoomFit').addEventListener('click', function(){ schFit(); });
 $('#miCardScheme').addEventListener('click', function(){
   closeMenu();
   if (!currentNodeId){ return; }
@@ -1993,19 +2118,57 @@ $('#miCardScheme').addEventListener('click', function(){
   if (f){ openScheme(f.node); }
 });
 
-/* Поделиться схемой как SVG-файлом (надежный путь без холста; PNG - отдельным шагом позже) */
-function schSerialize(){
-  var svg = $('#schWrap').querySelector('svg');
+/* Экспорт схемы. SVG - вектор для печати и приложений, понимающих SVG.
+   PNG - растровая картинка через холст: ее принимает Telegram и любой мессенджер.
+   Оба экспорта всегда в натуральном размере, независимо от масштаба на экране. */
+function schSerializeBase(){
+  var svg = schWrapEl.querySelector('svg');
   if (!svg){ return ''; }
-  var s = new XMLSerializer().serializeToString(svg);
+  var clone = svg.cloneNode(true);
+  clone.removeAttribute('style');
+  clone.setAttribute('width', schBaseW);
+  clone.setAttribute('height', schBaseH);
+  var s = new XMLSerializer().serializeToString(clone);
   if (s.indexOf('xmlns=') === -1){ s = s.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"'); }
-  return '<?xml version="1.0" encoding="UTF-8"?>\n' + s;
+  return s;
 }
 $('#schShare').addEventListener('click', function(){
   if (!schRoot){ return; }
-  var txt = schSerialize();
-  if (!txt){ return; }
-  shareOrDownload('a-chto-potom_shema_' + fileStamp() + '.svg', txt, 'image/svg+xml');
+  schClearSel(); schCap('');
+  var base = schSerializeBase();
+  if (!base){ return; }
+  shareOrDownload('a-chto-potom_shema_' + fileStamp() + '.svg', '<?xml version="1.0" encoding="UTF-8"?>\n' + base, 'image/svg+xml');
+});
+$('#schPng').addEventListener('click', function(){
+  if (!schRoot){ return; }
+  schClearSel(); schCap('');
+  var base = schSerializeBase();
+  if (!base){ return; }
+  var k = 2;
+  var url = URL.createObjectURL(new Blob([base], { type: 'image/svg+xml;charset=utf-8' }));
+  var img = new Image();
+  img.onload = function(){
+    try {
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(schBaseW * k));
+      canvas.height = Math.max(1, Math.round(schBaseH * k));
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      if (!canvas.toBlob){ toast('Не удалось сохранить PNG, выгрузите SVG'); return; }
+      canvas.toBlob(function(png){
+        if (!png){ toast('Не удалось сохранить PNG, выгрузите SVG'); return; }
+        shareOrDownload('a-chto-potom_shema_' + fileStamp() + '.png', png, 'image/png');
+      }, 'image/png');
+    } catch (err){
+      URL.revokeObjectURL(url);
+      toast('Не удалось сохранить PNG, выгрузите SVG');
+    }
+  };
+  img.onerror = function(){
+    URL.revokeObjectURL(url);
+    toast('Не удалось сохранить PNG, выгрузите SVG');
+  };
+  img.src = url;
 });
 
 /* ===== Шапка редактора: экспорт и меню ===== */
