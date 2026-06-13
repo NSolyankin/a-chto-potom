@@ -1,4 +1,4 @@
-<!-- А что потом? v1.2.3 | Web Share для .md и .json на iPhone | 13.06.2026 -->
+<!-- А что потом? v1.2.4 | Цитаты В.К. Тарасова дословно, тумблер в настройках | 13.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -465,7 +465,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
     <div id="listEmpty" hidden>
       <figure class="quote">
         <blockquote>«Побеждает тот, кто способен всесторонне оценить последствия своих решений»</blockquote>
-        <figcaption>В. Тарасов. Управленческая элита</figcaption>
+        <figcaption>В.К. Тарасов. Управленческая элита: как мы ее отбираем и готовим</figcaption>
       </figure>
       <button class="btn primary" data-new>Новый анализ</button>
     </div>
@@ -573,6 +573,14 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
       </div>
     </div>
 
+    <div class="set-row">
+      <div class="set-label">Подсказки с цитатами</div>
+      <div class="seg" id="quoteSeg" role="group" aria-label="Подсказки с цитатами">
+        <button data-quote-opt="on">Вкл</button>
+        <button data-quote-opt="off">Выкл</button>
+      </div>
+    </div>
+
     <div class="set-about">
       <p class="set-h">О приложении «А что потом?»</p>
       <p>Инструмент анализа последствий решений. Помогает записать решение и разложить его последствия: положительные и отрицательные, близкие и отдаленные, чтобы увидеть картину целиком до того, как решение принято.</p>
@@ -645,7 +653,7 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.2.3';
+var APP_VERSION = 'v1.2.4';
 var APP_STEP = 'ТЗ 1.0 + дополнения, исправления';
 
 function $(s, r){ return (r || document).querySelector(s); }
@@ -661,7 +669,7 @@ function uid(){
 var KEY = 'achtopotom_v1';
 var storageOk = true;     /* false: нет доступа (приватный режим, песочница) - работаю в памяти */
 var brokenStore = false;  /* true: сохраненный JSON был поврежден и убран в резервную копию */
-var store = { version: 1, settings: { theme: 'auto' }, activeDocId: null, docs: {} };
+var store = { version: 1, settings: { theme: 'auto', quotes: true }, activeDocId: null, docs: {} };
 
 function loadStore(){
   var raw;
@@ -671,7 +679,7 @@ function loadStore(){
   try {
     var data = JSON.parse(raw);
     if (!data || data.version !== 1 || typeof data.docs !== 'object' || !data.docs){ throw new Error('структура'); }
-    if (!data.settings || typeof data.settings !== 'object'){ data.settings = { theme: 'auto' }; }
+    if (!data.settings || typeof data.settings !== 'object'){ data.settings = { theme: 'auto', quotes: true }; }
     store = data;
   } catch (e){
     brokenStore = true;
@@ -829,6 +837,46 @@ $('#themeSeg').addEventListener('click', function(e){
   store.settings.theme = themeMode;
   scheduleSave();
   applyTheme();
+});
+
+/* ===== Подсказки с цитатами В.К. Тарасова (дословно, отключаемы в настройках) =====
+   Источник: В.К. Тарасов. Управленческая элита: как мы ее отбираем и готовим, раздел 2.6.
+   Тексты приведены дословно; типографское тире заменено обычным дефисом по правилу проекта. */
+var TARASOV_SRC = 'В.К. Тарасов. Управленческая элита: как мы ее отбираем и готовим';
+var TARASOV_QUOTES = [
+  'В природе не существует управленческого решения, которое имело бы только положительные или только отрицательные последствия, с чьих бы позиций мы эти последствия не рассматривали.',
+  'Побеждает тот, кто способен всесторонне оценить последствия своих решений.',
+  'Если человек способен видеть лишь одну сторону медали, это значит, что адекватно оценивать последствия управленческих решений он не в состоянии.',
+  'А требуется как раз обратное: оценить все возможные последствия, а не решения в целом.',
+  'Искусство управлять предполагает умение превратить «минус» в «плюс» для себя (и «плюс» в «минус» - для противника).',
+  'Типичной ошибкой являлось грубое нарушение последовательности решения задачи: начинают с оценки решения - плохое оно или хорошее.',
+  'Не может быть «правильного» решения управленческой ситуации, изложенной на бумаге в нескольких строках.'
+];
+var quoteIdx = Math.floor(Math.random() * TARASOV_QUOTES.length);
+function quotesOn(){ return store.settings.quotes !== false; }
+function renderEmptyQuote(){
+  var fig = $('#listEmpty .quote');
+  if (!quotesOn()){ fig.hidden = true; return; }
+  fig.hidden = false;
+  $('#listEmpty blockquote').textContent = '«' + TARASOV_QUOTES[quoteIdx % TARASOV_QUOTES.length] + '»';
+  $('#listEmpty figcaption').textContent = TARASOV_SRC;
+}
+function applyQuotesSeg(){
+  $$('#quoteSeg [data-quote-opt]').forEach(function(b){
+    b.classList.toggle('active', (b.getAttribute('data-quote-opt') === 'on') === quotesOn());
+  });
+}
+function applyQuotes(){
+  if (doc){ updateHint(); }
+  else if (!$('#listEmpty').hidden){ renderEmptyQuote(); }
+}
+$('#quoteSeg').addEventListener('click', function(e){
+  var b = e.target.closest('[data-quote-opt]');
+  if (!b){ return; }
+  store.settings.quotes = b.getAttribute('data-quote-opt') === 'on';
+  scheduleSave();
+  applyQuotesSeg();
+  applyQuotes();
 });
 
 
@@ -1038,11 +1086,8 @@ function updateBalance(){
 function updateHint(){
   var c = countersAll(doc.root);
   var h = $('#hintLine');
-  if (c.total >= 3 && c.m === 0){
-    h.textContent = 'По Тарасову, решений только с плюсами не бывает. Какие минусы упущены?';
-    h.hidden = false;
-  } else if (c.total >= 3 && c.p === 0){
-    h.textContent = 'По Тарасову, решений только с минусами не бывает. Какие плюсы упущены?';
+  if (quotesOn() && c.total >= 3 && (c.m === 0 || c.p === 0)){
+    h.textContent = '«' + TARASOV_QUOTES[0] + '»';
     h.hidden = false;
   } else {
     h.hidden = true;
@@ -1130,6 +1175,7 @@ function renderList(){
   var arr = docsSorted();
   $('#listFull').hidden = arr.length === 0;
   $('#listEmpty').hidden = arr.length > 0;
+  if (arr.length === 0){ renderEmptyQuote(); quoteIdx++; }
   arr.forEach(function(d){
     var b = el('button', 'doc');
     b.setAttribute('data-id', d.id);
@@ -1887,6 +1933,7 @@ document.addEventListener('keydown', function(e){
 
 /* ===== Старт (п. 4.2) ===== */
 applyTheme();
+applyQuotesSeg();
 if (/^#d=/.test(location.hash || '')){
   /* Режим снимка (п. 7.5): документы в хранилище не затрагиваются до явного сохранения */
   var packed = location.hash.slice(3);
