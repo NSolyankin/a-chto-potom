@@ -1,4 +1,4 @@
-<!-- А что потом? v1.6.0 | Поиск, свернуть/развернуть все, дублирование ветви, сортировка | 13.06.2026 -->
+<!-- А что потом? v1.8.0 | Pre-mortem, подробное описание функционала в настройках | 13.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -176,6 +176,10 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
 }
 .decision-label{font-size:11px;font-weight:700;letter-spacing:0.08em;color:var(--accent);text-transform:uppercase;margin-bottom:4px}
 .decision textarea{font-size:20px;font-weight:600;line-height:1.4}
+.titlefield{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 16px 12px;margin-bottom:10px}
+.titlefield input{width:100%;border:none;background:transparent;color:var(--text);font-size:17px;font-weight:600;padding:0;outline:none}
+.titlefield input::placeholder{color:var(--text2);font-weight:400}
+.tag-legend{font-size:12px;color:var(--text2);margin:-6px 0 12px}
 
 .balance{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;font-size:13px}
 .pill{
@@ -562,6 +566,11 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
       <button class="btn primary" id="snapSave">Сохранить в Мои анализы</button>
     </div>
 
+    <section class="titlefield">
+      <div class="decision-label">Название</div>
+      <input type="text" id="taName" maxlength="120" autocomplete="off" placeholder="Короткое название (необязательно)">
+    </section>
+
     <section class="decision">
       <div class="decision-label">Решение</div>
       <textarea id="taDecision" rows="1" maxlength="2000" placeholder="Какое решение анализируем?"></textarea>
@@ -576,8 +585,8 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
     <!-- Методическая подсказка (п. 5.4) -->
     <p class="hint" id="hintLine" hidden></p>
 
-    <!-- Пре-мортем: опция, включается в настройках -->
-    <button type="button" class="premortem-btn" id="btnPremortem" hidden>Пре-мортем: а если решение провалится?</button>
+    <!-- Pre-mortem: опция, включается в настройках -->
+    <button type="button" class="premortem-btn" id="btnPremortem" hidden>Pre-mortem: а если решение провалится?</button>
 
     <!-- Поиск по тексту последствий и вид -->
     <div class="searchbar" id="searchBar">
@@ -594,6 +603,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
       <button type="button" class="tf matter" data-tf="matter" aria-pressed="false" aria-label="Только дело">Д</button>
       <button type="button" class="tf-reset" id="tfReset" hidden>Сбросить</button>
     </div>
+    <p class="tag-legend">Метки сфер: Л - люди, В - власть, Д - дело</p>
 
     <!-- Дерево последствий: строится рендерером из данных документа -->
     <div id="cards"></div>
@@ -700,8 +710,8 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
     </div>
 
     <div class="set-row">
-      <div class="set-label">Пре-мортем</div>
-      <div class="seg" id="preSeg" role="group" aria-label="Пре-мортем">
+      <div class="set-label">Pre-mortem</div>
+      <div class="seg" id="preSeg" role="group" aria-label="Pre-mortem">
         <button data-pre-opt="on">Вкл</button>
         <button data-pre-opt="off">Выкл</button>
       </div>
@@ -710,16 +720,40 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
     <div class="set-about">
       <p class="set-h">О приложении «А что потом?»</p>
       <p>Инструмент анализа последствий решений. Помогает записать решение и разложить его последствия: положительные и отрицательные, близкие и отдаленные, чтобы увидеть картину целиком до того, как решение принято.</p>
-      <p>Методическая основа: принцип Владимира Тарасова «Побеждает тот, кто способен всесторонне оценить последствия своих решений». Приложение подталкивает к честному поиску минусов там, где видны одни плюсы, и наоборот.</p>
-      <p class="set-h">Как работать</p>
-      <p>Запишите решение и добавляйте последствия кнопками «+ Положительное» и «+ Отрицательное». У каждой карточки два свойства: знак (плюс или минус) и горизонт (близкое или отдаленное), оба переключаются касанием. Кнопка «А что потом?» раскрывает цепочку: у любого последствия есть свои последствия, глубина не ограничена. Плюсы всегда показываются перед минусами.</p>
-      <p>Счетчики баланса показывают соотношение плюсов и минусов по горизонтам, пустые карточки не считаются. Если при трех заполненных карточках нет ни одного минуса (или ни одного плюса), появляется методическая подсказка. Режим «Матрица» раскладывает прямые последствия по четырем квадрантам: знак на строках, горизонт на столбцах; матрица доступна для решения целиком и для любой ветки через меню карточки. Режим «Схема» рисует те же последствия деревом: цвет узла означает знак, в шапке указан горизонт; ориентацию можно переключать, а схему - сохранить картинкой SVG.</p>
+      <p>Методическая основа: принцип Владимира Тарасова «Побеждает тот, кто способен всесторонне оценить последствия своих решений». Приложение подталкивает искать минусы там, где видны одни плюсы, и наоборот, и оценивать не решение целиком, а каждое его последствие.</p>
+
+      <p class="set-h">Решение и название</p>
+      <p>В поле «Решение» запишите, что анализируете. Поле «Название» необязательное: впишете короткое имя - оно станет заголовком анализа в списке и вверху редактора; оставите пустым - заголовком служит текст решения. Название удобно, когда решение длинное.</p>
+
+      <p class="set-h">Последствия и вопрос «а что потом?»</p>
+      <p>Добавляйте последствия кнопками «+ Положительное» и «+ Отрицательное». У каждой карточки два свойства: знак (плюс или минус) и горизонт (близкое или отдаленное), оба переключаются касанием чипа. Плюсы всегда показываются перед минусами.</p>
+      <p>Кнопка «А что потом?» раскрывает следующий уровень: у любого последствия есть свои последствия, глубина не ограничена. Кружок со знаком на ветви сворачивает и разворачивает ее. Меню карточки (три точки на карточке) дает «Дублировать ветвь», показ ветки матрицей или схемой и удаление.</p>
+
+      <p class="set-h">Метки сфер: люди, власть, дело</p>
+      <p>На каждой карточке три метки: Л - люди, В - власть, Д - дело. Это третья ось разбора, кроме знака и горизонта: по кому или чему бьет последствие. Меток можно ставить несколько на одну карточку. Строка «Фильтр» под решением показывает только последствия с выбранными сферами и их родителей для контекста. Метки видны в матрице, схеме и экспортах.</p>
+
+      <p class="set-h">Поиск и большие разборы</p>
+      <p>Поле «Поиск по последствиям» оставляет в дереве только совпадения, подсвечивает их и считает число; совпадения внутри свернутых ветвей тоже показываются. Меню редактора дает «Развернуть все ветви» и «Свернуть все ветви». Кнопка «Крупные вперед» ставит впереди самые проработанные ветви по числу вложенных карточек - это только порядок показа, данные не меняются.</p>
+
+      <p class="set-h">Полнота и подсказки</p>
+      <p>Счетчики баланса показывают соотношение плюсов и минусов по горизонтам, пустые карточки не считаются. Кнопка «полнота» открывает чек-лист из пяти шагов: сформулировано ли решение, есть ли плюсы и минусы, близкие и отдаленные, применен ли вопрос «а что потом?», дошла ли глубина до третьего уровня. Методические подсказки можно выключить в настройках.</p>
+
+      <p class="set-h">Матрица и схема</p>
+      <p>«Матрица» раскладывает прямые последствия по четырем квадрантам: знак на строках, горизонт на столбцах; доступна для решения целиком и для любой ветки. «Схема» рисует последствия деревом: цвет шапки означает знак, в шапке указан горизонт, справа - метки сфер. Ориентацию можно менять (сверху вниз или слева направо), масштаб - кнопками зума, ветви - сворачивать.</p>
+      <p>Кнопка «Сохранить PNG» сохраняет картинку всегда в светлой палитре и без кружков сворачивания, чтобы изображение было чистым, даже если на экране темная тема. В картинку попадает то, что видно: свернутая ветвь останется свернутой, разверните ее, если нужна полная.</p>
+
+      <p class="set-h">Pre-mortem</p>
+      <p>Необязательный режим, включается в настройках. Это прием Гэри Кляйна: представить, что решение уже провалилось, и заранее назвать причины. Когда режим включен, в редакторе появляется кнопка; она помогает быстро добавить причину провала как отрицательное отдаленное последствие и продолжить цепочку.</p>
+
       <p class="set-h">Хранение и приватность</p>
-      <p>Анализы хранятся только в этом браузере на этом устройстве. Сервера нет, регистрации нет, после загрузки страница работает без сети. Важное сохраняйте ссылкой или файлом: при чистке данных браузера локальные анализы исчезнут.</p>
+      <p>Анализы хранятся только в этом браузере на этом устройстве. Сервера нет, регистрации нет, после загрузки страница работает без сети. Это личная программа: ваши анализы не видит никто, и вы не видите чужие. Важное сохраняйте ссылкой или файлом - при очистке данных браузера локальные анализы исчезнут.</p>
+
       <p class="set-h">Обмен и экспорт</p>
-      <p>Ссылка-снимок несет весь анализ внутри адреса: получатель увидит дерево и сможет сохранить себе копию, ваши данные при этом никуда не отправляются. Доступны выгрузка и импорт .json, экспорт md для Obsidian, копирование для Заметок iPhone, прямое сохранение в Obsidian и печать в PDF.</p>
+      <p>Ссылка-снимок несет весь анализ внутри адреса: получатель увидит дерево и сможет сохранить себе копию, ваши данные при этом никуда не отправляются. Доступны выгрузка и импорт .json, экспорт md (в том числе прямо в Obsidian), копирование для Заметок iPhone и печать в PDF. Метки сфер попадают в markdown, Заметки и печать.</p>
+
       <p class="set-h">Советы для iPhone</p>
-      <p>Добавьте страницу на экран «Домой» (Поделиться, затем «На экран Домой»), и она будет запускаться как приложение на весь экран. Из Telegram открывайте сайт в Safari, чтобы анализы надежно сохранялись.</p>
+      <p>Добавьте страницу на экран «Домой» (Поделиться, затем «На экран Домой») - она будет запускаться как приложение на весь экран. iOS дает версии с экрана «Домой» отдельное хранилище, не связанное с Safari: анализы из Safari там не видны, и наоборот. Выберите что-то одно, а переносите анализы между ними через .json или ссылку-снимок. Для четкой картинки в мессенджере сохраняйте PNG в Фото и отправляйте оттуда либо посылайте как файл без сжатия.</p>
+
       <p class="sub" id="aboutVer">Версия</p>
       <p class="lnk">https://github.com/NSolyankin/a-chto-potom</p>
     </div>
@@ -784,8 +818,8 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.6.0';
-var APP_STEP = 'ТЗ 1.0 + дополнения: теги, пре-мортем, поиск и инструменты больших разборов';
+var APP_VERSION = 'v1.8.0';
+var APP_STEP = 'ТЗ 1.0 + дополнения: теги, pre-mortem, поиск, название, описание в настройках';
 
 function $(s, r){ return (r || document).querySelector(s); }
 function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -843,7 +877,7 @@ document.addEventListener('visibilitychange', function(){
 /* ===== Модель (п. 3.2-3.3) ===== */
 function makeDoc(){
   var now = new Date().toISOString();
-  return { id: uid(), createdAt: now, updatedAt: now, lastHorizon: 'near',
+  return { id: uid(), name: '', createdAt: now, updatedAt: now, lastHorizon: 'near',
     root: { id: uid(), text: '', children: [] } };
 }
 function makeNode(sign, horizon){
@@ -1023,7 +1057,7 @@ $('#quoteSeg').addEventListener('click', function(e){
   applyQuotes();
 });
 
-/* ===== Пре-мортем (опция): помощник генерации причин провала ===== */
+/* ===== Pre-mortem (опция): помощник генерации причин провала ===== */
 function premortemOn(){ return store.settings.premortem === true; }
 function applyPreSeg(){
   $$('#preSeg [data-pre-opt]').forEach(function(b){
@@ -1097,7 +1131,7 @@ var COMP_DONE = [
 var COMP_TODO = [
   'Сформулируйте решение в строке решения',
   'Найдите и плюсы, и минусы',
-  'Что изменится не сразу, а через год?',
+  'Что изменится не сразу, а спустя длительное время?',
   'Возьмите последствие и спросите: а что потом?',
   'Протяните самую важную цепочку еще на шаг вглубь'
 ];
@@ -1225,7 +1259,10 @@ aboutBk.addEventListener('click', function(e){ if (e.target === aboutBk) closeLa
 var editor = $('#editor');
 var cardsEl = $('#cards');
 var taDecision = $('#taDecision');
+var taName = $('#taName');
 var edTitle = $('#edTitle');
+/* Заголовок вверху: имя анализа, если задано, иначе текст решения */
+function curTitle(){ return (doc && doc.name) ? trim60(doc.name) : trim60(doc ? doc.root.text : ''); }
 
 function trim60(s){
   s = (s || '').replace(/\s+/g, ' ').trim();
@@ -1426,7 +1463,7 @@ function updateHint(){
   } else if (c.total >= 2 && !anyDeeper){
     h.textContent = 'У каждого последствия есть свои последствия. Возьмите самое весомое и спросите: а что потом?';
   } else if (c.total >= 2 && (c.farP + c.farM) === 0){
-    h.textContent = 'Отдаленные последствия часто весят больше близких. Что изменится через год?';
+    h.textContent = 'Отдаленные последствия часто весят больше близких. Что изменится спустя длительное время?';
   } else {
     h.hidden = true; return;
   }
@@ -1470,7 +1507,8 @@ function enterEditor(d, asSnapshot){
   }
   taDecision.value = doc.root.text;
   taDecision.setAttribute('data-id', doc.root.id);
-  edTitle.textContent = trim60(doc.root.text);
+  taName.value = doc.name || '';
+  edTitle.textContent = curTitle();
   resetTagFilter();
   syncTagFilter();
   resetView();
@@ -1524,7 +1562,7 @@ function renderList(){
     b.setAttribute('data-id', d.id);
     var main = el('span', 'doc-main');
     var t = el('span', 'doc-title');
-    t.textContent = trim60(d.root.text);
+    t.textContent = d.name ? trim60(d.name) : trim60(d.root.text);
     var meta = el('span', 'doc-meta');
     meta.textContent = fmtDate(d.updatedAt) + ' \u00B7 полнота ' + completeness(d).n + '/5';
     var c = countersAll(d.root);
@@ -1635,6 +1673,7 @@ function sanitizeDoc(raw, trusted){
   }
   var ctx = { count: 0, limit: !trusted };
   var d = makeDoc();
+  if (typeof src.name === 'string'){ d.name = src.name.slice(0, 120); }
   if (typeof src.createdAt === 'string'){ d.createdAt = src.createdAt; }
   d.lastHorizon = src.lastHorizon === 'far' ? 'far' : 'near';
   if (typeof src.root.text === 'string'){ d.root.text = src.root.text.slice(0, 2000); }
@@ -1682,12 +1721,20 @@ document.addEventListener('input', function(e){
   f.node.text = ta.value;
   touch();
   if (f.node === doc.root){
-    edTitle.textContent = trim60(ta.value);
+    edTitle.textContent = curTitle();
     updateComp();
   } else {
     updateBalance();
     updateHint();
   }
+});
+
+/* Имя анализа: отдельное поле, не обязательное; если пусто, заголовком служит текст решения */
+taName.addEventListener('input', function(){
+  if (!doc){ return; }
+  doc.name = this.value;
+  edTitle.textContent = curTitle();
+  touch();
 });
 
 /* ===== Добавление карточек (п. 5.5, 5.7) ===== */
@@ -2568,15 +2615,17 @@ sheetBk.addEventListener('click', function(e){ if (e.target === sheetBk) closeLa
 
 /* ===== Экспорт (п. 7.2-7.3) ===== */
 function flatLine(t){ return (t || '').replace(/\r?\n/g, ' '); }
-function docTitleLine(d){ return isFilled(d.root) ? flatLine(d.root.text) : 'Без названия'; }
+function docTitleLine(d){ return d.name ? flatLine(d.name) : (isFilled(d.root) ? flatLine(d.root.text) : 'Без названия'); }
 function mdMarker(n){
   return '[' + (n.sign === 'plus' ? '+' : '-') + ' ' +
     (n.horizon === 'near' ? 'близкое' : 'отдаленное') + ']';
 }
 function mdTags(n){
-  var t = nodeTags(n), s = '';
-  for (var i = 0; i < t.length; i++){ s += '[' + TAG_LETTER[t[i]] + ']'; }
-  return s;
+  var t = nodeTags(n);
+  if (!t.length){ return ''; }
+  var parts = [];
+  for (var i = 0; i < t.length; i++){ parts.push(TAG_LETTER[t[i]]); }
+  return ' (' + parts.join(', ') + ')';
 }
 function balanceLine(d){
   var c = countersAll(d.root);
@@ -2592,7 +2641,7 @@ function buildMd(d){
   lines.push('');
   lines.push('Дата: ' + fmtDate(d.updatedAt));
   lines.push('');
-  lines.push('- РЕШЕНИЕ: ' + title);
+  lines.push('- РЕШЕНИЕ: ' + (isFilled(d.root) ? flatLine(d.root.text) : 'Без названия'));
   (function walk(node, depth){
     var g = grouped(node.children);
     for (var i = 0; i < g.length; i++){
@@ -2622,7 +2671,7 @@ function buildNotesHtml(d){
   var br = el('b');
   br.textContent = 'РЕШЕНИЕ:';
   liRoot.appendChild(br);
-  liRoot.appendChild(document.createTextNode(' ' + title));
+  liRoot.appendChild(document.createTextNode(' ' + (isFilled(d.root) ? flatLine(d.root.text) : 'Без названия')));
   (function walk(node, li){
     var g = grouped(node.children).filter(function(ch){
       return isFilled(ch) || ch.children.length;
@@ -2880,7 +2929,7 @@ function buildPrintView(){
     var b = el('span', 'pmark');
     b.textContent = 'РЕШЕНИЕ: ';
     li.appendChild(b);
-    li.appendChild(document.createTextNode(title));
+    li.appendChild(document.createTextNode(isFilled(doc.root) ? flatLine(doc.root.text) : 'Без названия'));
     (function walk(node, host){
       var g = grouped(node.children).filter(function(ch){
         return isFilled(ch) || ch.children.length;
@@ -2890,7 +2939,7 @@ function buildPrintView(){
       g.forEach(function(ch){
         var l = el('li');
         var m = el('span', 'pmark');
-        m.textContent = mdMarker(ch) + ' ';
+        m.textContent = mdMarker(ch) + mdTags(ch) + ' ';
         l.appendChild(m);
         l.appendChild(document.createTextNode(isFilled(ch) ? flatLine(ch.text) : '(без текста)'));
         walk(ch, l);
