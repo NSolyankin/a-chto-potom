@@ -1,4 +1,4 @@
-<!-- А что потом? v1.11.0 | Формулировка про предшествующие последствия в фильтре | 14.06.2026 -->
+<!-- А что потом? v1.12.0 | Режим проверки результата (сбылось/частично/не сбылось), версия без описания | 14.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -268,6 +268,24 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 .sortbtn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .csq.match{outline:2px solid var(--accent);outline-offset:1px;border-radius:14px}
 .csq.ctx > .csq-top, .csq.ctx > textarea, .csq.ctx > .csq-actions{opacity:0.4}
+.outcome{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:8px}
+.out-lab{font-size:12px;color:var(--text2);margin-right:2px}
+.out-btn{font-size:12px;line-height:1;border-radius:999px;padding:6px 10px;border:1px solid var(--line);background:var(--card);color:var(--text2);cursor:pointer}
+.out-btn:active{background:var(--press)}
+.out-btn.yes.on{background:var(--plus);color:#fff;border-color:var(--plus)}
+.out-btn.partial.on{background:#C9912E;color:#fff;border-color:#C9912E}
+.out-btn.no.on{background:var(--minus);color:#fff;border-color:var(--minus)}
+.csq.out-yes{outline:2px solid var(--plus);outline-offset:1px;border-radius:14px}
+.csq.out-partial{outline:2px solid #C9912E;outline-offset:1px;border-radius:14px}
+.csq.out-no{outline:2px solid var(--minus);outline-offset:1px;border-radius:14px}
+.reviewbar{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin:0 0 14px}
+.rb-title{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px}
+.rb-sum{display:flex;flex-wrap:wrap;gap:10px;font-size:13px;font-weight:600}
+.rb-yes{color:var(--plus)}
+.rb-partial{color:#C9912E}
+.rb-no{color:var(--minus)}
+.rb-none{color:var(--text2)}
+.rb-note{font-size:12px;color:var(--text2);margin-top:8px;font-weight:400}
 .kebab{width:40px;height:40px;margin:-6px -4px -6px 0;color:var(--text2)}
 
 .csq textarea{margin:7px 0 3px}
@@ -492,6 +510,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 <!-- Спрайт иконок (п. 9.8): однотонные, линия 1.75px -->
 <svg hidden xmlns="http://www.w3.org/2000/svg">
   <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></symbol>
   <symbol id="i-dots" viewBox="0 0 24 24"><g fill="currentColor" stroke="none"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></g></symbol>
   <symbol id="i-mx" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></symbol>
@@ -746,6 +765,9 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
       <p class="set-h">Pre-mortem</p>
       <p>Необязательный режим, включается в настройках. Это прием Гэри Кляйна: представить, что решение уже провалилось, и заранее назвать причины. Когда режим включен, в редакторе появляется кнопка; она помогает быстро добавить причину провала как отрицательное отдаленное последствие и продолжить цепочку.</p>
 
+      <p class="set-h">Проверка результата</p>
+      <p>Когда время прошло, можно вернуться к разбору и сверить прогноз с жизнью. В меню (три точки) включите «Режим проверки результата»: у каждого последствия появятся отметки сбылось / частично / не сбылось, а вверху сводка по всем отметкам. Если судить рано, оставьте без отметки. Это не оценка-балл, а способ увидеть, что вы предвидите точно, а где ошибаетесь, и так натренировать предвидение. Отметки хранятся вместе с разбором и идут в выгрузку.</p>
+
       <p class="set-h">Хранение и приватность</p>
       <p>Данные хранятся только в этом браузере на этом устройстве. Сервера нет, регистрации нет, после загрузки страница работает без сети. Это личная программа: ваши данные не видит никто, и вы не видите чужие. Важное сохраняйте ссылкой или файлом - при очистке данных браузера локальные данные исчезнут.</p>
 
@@ -773,6 +795,8 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
   <hr>
   <button id="miExpandAll"><svg class="icon"><use href="#i-chev"/></svg>Развернуть все ветви</button>
   <button id="miCollapseAll"><svg class="icon"><use href="#i-chev"/></svg>Свернуть все ветви</button>
+  <hr>
+  <button id="miReview"><svg class="icon"><use href="#i-check"/></svg>Режим проверки результата</button>
   <hr>
   <button class="danger" id="miDelDoc"><svg class="icon"><use href="#i-trash"/></svg>Удалить анализ</button>
 </div>
@@ -819,7 +843,7 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.11.0';
+var APP_VERSION = 'v1.12.0';
 var APP_STEP = 'ТЗ 1.0 + дополнения: координаты Л/В/Д, подсветка фильтра, правки формулировок';
 
 function $(s, r){ return (r || document).querySelector(s); }
@@ -882,7 +906,7 @@ function makeDoc(){
     root: { id: uid(), text: '', children: [] } };
 }
 function makeNode(sign, horizon){
-  return { id: uid(), text: '', sign: sign, horizon: horizon, collapsed: false, tags: [], children: [] };
+  return { id: uid(), text: '', sign: sign, horizon: horizon, collapsed: false, tags: [], outcome: '', children: [] };
 }
 /* Сферы последствия (теги): порядок фиксирован для показа Л, В, Д */
 var TAG_CODES = ['people', 'power', 'matter'];
@@ -896,6 +920,28 @@ function nodeTags(n){
     if (src.indexOf(TAG_CODES[i]) !== -1){ out.push(TAG_CODES[i]); }
   }
   return out;
+}
+/* Результат проверки последствия: сбылось / частично / не сбылось (пусто - не оценено) */
+var OUTCOME_CODES = ['yes', 'partial', 'no'];
+var OUTCOME_LABEL = { yes: 'сбылось', partial: 'частично', no: 'не сбылось' };
+function nodeOutcome(n){
+  return (n && (n.outcome === 'yes' || n.outcome === 'partial' || n.outcome === 'no')) ? n.outcome : '';
+}
+/* Сводка результатов по всему дереву (только по заполненным последствиям) */
+function outcomeStats(d){
+  var s = { yes: 0, partial: 0, no: 0, none: 0, filled: 0 };
+  (function walk(n){
+    for (var i = 0; i < n.children.length; i++){
+      var c = n.children[i];
+      if (isFilled(c)){
+        s.filled++;
+        var o = nodeOutcome(c);
+        if (o){ s[o]++; } else { s.none++; }
+      }
+      walk(c);
+    }
+  })(d.root);
+  return s;
 }
 function touch(){ if (doc){ doc.updatedAt = new Date().toISOString(); scheduleSave(); } }
 
@@ -1250,7 +1296,7 @@ dlgBk.addEventListener('click', function(e){ if (e.target === dlgBk){ pendingOk 
 
 /* ===== О приложении ===== */
 var aboutBk = $('#aboutBk');
-$('#aboutVer').textContent = 'Версия ' + APP_VERSION + ' (' + APP_STEP + ')';
+$('#aboutVer').textContent = 'Версия ' + APP_VERSION;
 $('#miAbout').addEventListener('click', function(){ closeMenu(); openLayer(aboutBk); });
 $('#btnSettings').addEventListener('click', function(){ openLayer(aboutBk); });
 $('#aboutOk').addEventListener('click', function(){ closeLayer(aboutBk); });
@@ -1305,6 +1351,7 @@ function renderCard(n, depth){
 
   var cls = 'csq ' + (n.sign === 'plus' ? 'plus' : 'minus') + (isOpen ? ' open' : '');
   if (filteringOn()){ cls += nodeDirectMatch(n) ? ' match' : ' ctx'; }
+  if (reviewOn){ var oc0 = nodeOutcome(n); if (oc0){ cls += ' out-' + oc0; } }
   var card = el('article', cls);
   card.setAttribute('data-id', n.id);
 
@@ -1353,6 +1400,23 @@ function renderCard(n, depth){
   }
   card.appendChild(act);
 
+  /* Режим проверки: отметка результата для заполненного последствия */
+  if (reviewOn && isFilled(n)){
+    var oc = nodeOutcome(n);
+    var ov = el('div', 'outcome');
+    var olab = el('span', 'out-lab'); olab.textContent = 'Сбылось?';
+    ov.appendChild(olab);
+    for (var oi = 0; oi < OUTCOME_CODES.length; oi++){
+      var ocode = OUTCOME_CODES[oi];
+      var ob = el('button', 'out-btn ' + ocode + (oc === ocode ? ' on' : ''));
+      ob.textContent = OUTCOME_LABEL[ocode];
+      ob.setAttribute('data-out', ocode);
+      ob.setAttribute('aria-pressed', oc === ocode ? 'true' : 'false');
+      ov.appendChild(ob);
+    }
+    card.appendChild(ov);
+  }
+
   /* Блок анализа (п. 5.7): дети группами плюсы-минусы и своя пара кнопок добавления */
   var kids = el('div', 'kids');
   var kidsIn = el('div', 'kids-in');
@@ -1372,6 +1436,7 @@ function renderCard(n, depth){
 var tagFilter = { people: false, power: false, matter: false };
 var searchText = '';
 var sortBig = false;   /* вид: крупные ветви вперед, данные не меняет */
+var reviewOn = false;  /* режим проверки результата: показывает отметки сбылось/частично/не сбылось */
 function tagFilterOn(){ return tagFilter.people || tagFilter.power || tagFilter.matter; }
 function searchQuery(){ return searchText.replace(/\s+/g, ' ').trim().toLowerCase(); }
 function searchOn(){ return searchQuery().length > 0; }
@@ -1429,6 +1494,29 @@ function displayOrder(children){
 
 function renderCards(){
   while (cardsEl.firstChild){ cardsEl.removeChild(cardsEl.firstChild); }
+  if (reviewOn){
+    var st = outcomeStats(doc);
+    var rb = el('div', 'reviewbar');
+    var rt = el('div', 'rb-title'); rt.textContent = 'Режим проверки результата';
+    rb.appendChild(rt);
+    var rs = el('div', 'rb-sum');
+    function part(code, label, val){
+      var sp = el('span', 'rb-' + code);
+      sp.textContent = label + ': ' + val;
+      rs.appendChild(sp);
+    }
+    part('yes', 'сбылось', st.yes);
+    part('partial', 'частично', st.partial);
+    part('no', 'не сбылось', st.no);
+    part('none', 'не оценено', st.none);
+    rb.appendChild(rs);
+    var rn = el('div', 'rb-note');
+    rn.textContent = st.filled
+      ? 'Отметьте у каждого последствия, сбылось ли оно. Если судить рано, оставьте без отметки.'
+      : 'Сначала заполните последствия, потом сюда можно вернуться и отметить, что сбылось.';
+    rb.appendChild(rn);
+    cardsEl.appendChild(rb);
+  }
   var g = displayOrder(doc.root.children);
   var shown = 0;
   for (var i = 0; i < g.length; i++){
@@ -1654,6 +1742,7 @@ function sanitizeNode(raw, depth, ctx){
                    raw && raw.horizon === 'far' ? 'far' : 'near');
   if (raw && typeof raw.text === 'string'){ n.text = raw.text.slice(0, 2000); }
   n.collapsed = !!(raw && raw.collapsed === true);
+  if (raw && (raw.outcome === 'yes' || raw.outcome === 'partial' || raw.outcome === 'no')){ n.outcome = raw.outcome; }
   if (raw && Array.isArray(raw.tags)){
     for (var ti = 0; ti < TAG_CODES.length; ti++){
       if (raw.tags.indexOf(TAG_CODES[ti]) !== -1){ n.tags.push(TAG_CODES[ti]); }
@@ -1792,6 +1881,21 @@ document.addEventListener('click', function(e){
   }
 });
 
+/* ===== Отметки результата (режим проверки): сбылось / частично / не сбылось ===== */
+document.addEventListener('click', function(e){
+  var ob = e.target.closest('.out-btn');
+  if (!ob || !doc){ return; }
+  var card = ob.closest('.csq');
+  if (!card){ return; }
+  var f = findNode(doc.root, card.getAttribute('data-id'));
+  if (!f){ return; }
+  var code = ob.getAttribute('data-out');
+  if (OUTCOME_CODES.indexOf(code) === -1){ return; }
+  f.node.outcome = (nodeOutcome(f.node) === code) ? '' : code;   /* повторный тап снимает отметку */
+  touch();
+  rerender();
+});
+
 /* ===== Фильтр по сферам (люди/власть/дело) ===== */
 function syncTagFilter(){
   $$('#tagFilter .tf').forEach(function(b){
@@ -1830,6 +1934,7 @@ function updateSearchCount(){
 function resetView(){
   searchText = '';
   sortBig = false;
+  reviewOn = false;
   var inp = $('#searchInput');
   if (inp){ inp.value = ''; }
   $('#sortBig').classList.remove('on');
@@ -2636,6 +2741,12 @@ function balanceLine(d){
 }
 
 /* Точный формат md из п. 7.2: отступ 4 пробела, строгие маркеры, пустые с детьми как (без текста) */
+function mdOutcome(n){ var o = nodeOutcome(n); return o ? ' (' + OUTCOME_LABEL[o] + ')' : ''; }
+function outcomeSummaryLine(d){
+  var s = outcomeStats(d);
+  if (!(s.yes + s.partial + s.no)){ return ''; }
+  return 'Проверка результата: сбылось ' + s.yes + ', частично ' + s.partial + ', не сбылось ' + s.no + ' (из ' + s.filled + ')';
+}
 function buildMd(d){
   var title = docTitleLine(d);
   var lines = [];
@@ -2651,12 +2762,14 @@ function buildMd(d){
       if (!isFilled(ch) && !ch.children.length){ continue; }
       var pad = new Array(depth + 1).join('    ');
       lines.push(pad + '- ' + mdMarker(ch) + mdTags(ch) + ' ' +
-        (isFilled(ch) ? flatLine(ch.text) : '(без текста)'));
+        (isFilled(ch) ? flatLine(ch.text) : '(без текста)') + mdOutcome(ch));
       walk(ch, depth + 1);
     }
   })(d.root, 1);
   lines.push('');
   lines.push(balanceLine(d));
+  var osMd = outcomeSummaryLine(d);
+  if (osMd){ lines.push(osMd); }
   return lines.join('\n') + '\n';
 }
 
@@ -2696,6 +2809,14 @@ function buildNotesHtml(d){
       }
       l.appendChild(document.createTextNode(' ' +
         (isFilled(ch) ? flatLine(ch.text) : '(без текста)')));
+      var oN = nodeOutcome(ch);
+      if (oN){
+        var OUT_HEX = { yes: '#2E7D52', partial: '#C9912E', no: '#C2563B' };
+        var ob2 = el('b');
+        ob2.setAttribute('style', 'color:' + OUT_HEX[oN]);
+        ob2.textContent = ' (' + OUTCOME_LABEL[oN] + ')';
+        l.appendChild(ob2);
+      }
       walk(ch, l);
       u.appendChild(l);
     });
@@ -2705,6 +2826,8 @@ function buildNotesHtml(d){
   var pb = el('p');
   pb.textContent = balanceLine(d);
   wrap.appendChild(h1); wrap.appendChild(pd); wrap.appendChild(ul); wrap.appendChild(pb);
+  var osN = outcomeSummaryLine(d);
+  if (osN){ var po = el('p'); po.textContent = osN; wrap.appendChild(po); }
   var ser = new XMLSerializer();
   var out = '';
   for (var i = 0; i < wrap.childNodes.length; i++){
@@ -2887,6 +3010,7 @@ function setAllCollapsed(val){
 }
 $('#miExpandAll').addEventListener('click', function(){ closeMenu(); setAllCollapsed(false); });
 $('#miCollapseAll').addEventListener('click', function(){ closeMenu(); setAllCollapsed(true); });
+$('#miReview').addEventListener('click', function(){ closeMenu(); reviewOn = !reviewOn; if (doc){ rerender(); } });
 
 /* Меню документа в списке (п. 4.4) */
 $('#miDocDup').addEventListener('click', function(){
@@ -2943,7 +3067,7 @@ function buildPrintView(){
         var m = el('span', 'pmark');
         m.textContent = mdMarker(ch) + mdTags(ch) + ' ';
         l.appendChild(m);
-        l.appendChild(document.createTextNode(isFilled(ch) ? flatLine(ch.text) : '(без текста)'));
+        l.appendChild(document.createTextNode((isFilled(ch) ? flatLine(ch.text) : '(без текста)') + mdOutcome(ch)));
         walk(ch, l);
         u.appendChild(l);
       });
@@ -2959,6 +3083,8 @@ function buildPrintView(){
     printView.appendChild(ul);
     printView.appendChild(pb);
     printView.appendChild(pc);
+    var osP = outcomeSummaryLine(doc);
+    if (osP){ var pp = el('p', 'pbal'); pp.textContent = osP; printView.appendChild(pp); }
   } else {
     var h = el('h1');
     h.textContent = 'А что потом? Мои данные';
