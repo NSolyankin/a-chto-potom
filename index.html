@@ -1,4 +1,4 @@
-<!-- А что потом? v1.3.2 | Схема: свободный сдвиг и резче PNG | 13.06.2026 -->
+<!-- А что потом? v1.6.0 | Поиск, свернуть/развернуть все, дублирование ветви, сортировка | 13.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -26,6 +26,9 @@
   --plus-bg:rgba(46,125,82,0.08);
   --minus:#C2563B;
   --minus-bg:rgba(194,86,59,0.08);
+  --tag-people:#2D6E8E;
+  --tag-power:#7A4FA3;
+  --tag-matter:#B8742A;
   --shadow:0 1px 2px rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.05);
   --card-border:transparent;
   --press:rgba(0,0,0,0.06);
@@ -43,6 +46,9 @@ html[data-theme="dark"]{
   --plus-bg:rgba(91,191,140,0.12);
   --minus:#E08568;
   --minus-bg:rgba(224,133,104,0.12);
+  --tag-people:#6FB3D2;
+  --tag-power:#B08FD8;
+  --tag-matter:#E0A766;
   --shadow:0 1px 2px rgba(0,0,0,0.25);
   --card-border:var(--line);
   --press:rgba(255,255,255,0.08);
@@ -61,6 +67,9 @@ html[data-theme="dark"]{
     --plus-bg:rgba(91,191,140,0.12);
     --minus:#E08568;
     --minus-bg:rgba(224,133,104,0.12);
+    --tag-people:#6FB3D2;
+    --tag-power:#B08FD8;
+    --tag-matter:#E0A766;
     --shadow:0 1px 2px rgba(0,0,0,0.25);
     --card-border:var(--line);
     --press:rgba(255,255,255,0.08);
@@ -223,6 +232,37 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 .chip:active{background:var(--press)}
 .chip.sign{font-weight:700;color:var(--sgn);border:1px solid var(--sgn);min-width:34px;text-align:center}
 .chip.hor{color:var(--text2);border:1px solid var(--line)}
+.chip.tag{font-weight:700;font-size:12px;padding:5px 8px;min-width:26px;text-align:center;border:1px solid var(--line);color:var(--text2)}
+.chip.tag.on.people{background:var(--tag-people);color:#fff;border-color:var(--tag-people)}
+.chip.tag.on.power{background:var(--tag-power);color:#fff;border-color:var(--tag-power)}
+.chip.tag.on.matter{background:var(--tag-matter);color:#fff;border-color:var(--tag-matter)}
+.tagfilter{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 12px;font-size:13px}
+.tagfilter .tf-label{color:var(--text2)}
+.tagfilter .tf{font-weight:700;font-size:12px;line-height:1;border-radius:999px;padding:6px 11px;border:1px solid var(--line);background:var(--card);color:var(--text2);cursor:pointer}
+.tagfilter .tf:active{background:var(--press)}
+.tagfilter .tf.on.people{background:var(--tag-people);color:#fff;border-color:var(--tag-people)}
+.tagfilter .tf.on.power{background:var(--tag-power);color:#fff;border-color:var(--tag-power)}
+.tagfilter .tf.on.matter{background:var(--tag-matter);color:#fff;border-color:var(--tag-matter)}
+.tagfilter .tf-reset{margin-left:auto;color:var(--accent);background:none;border:none;font-size:13px;cursor:pointer;padding:6px}
+.tagfilter .tf-reset[hidden]{display:none}
+.mx-tags{display:inline-flex;gap:3px;margin-left:6px;vertical-align:middle}
+.mx-tags b{font-size:11px;font-weight:700;line-height:1;padding:1px 4px;border-radius:6px;color:#fff}
+.mx-tags b.people{background:var(--tag-people)}
+.mx-tags b.power{background:var(--tag-power)}
+.mx-tags b.matter{background:var(--tag-matter)}
+.premortem-btn{display:block;width:100%;margin:0 0 12px;padding:10px 12px;font-size:14px;text-align:left;
+  border:1px dashed var(--minus);border-radius:12px;background:var(--minus-bg);color:var(--minus);cursor:pointer}
+.premortem-btn:active{background:var(--press)}
+.premortem-btn[hidden]{display:none}
+.searchbar{display:flex;align-items:center;gap:8px;margin:0 0 12px}
+.searchbar input{flex:1;min-width:0;font-size:14px;padding:8px 11px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
+.searchbar input::placeholder{color:var(--text2)}
+.search-count{font-size:12px;color:var(--text2);white-space:nowrap}
+.search-count[hidden]{display:none}
+.sortbtn{font-size:12px;line-height:1;border-radius:999px;padding:8px 11px;border:1px solid var(--line);background:var(--card);color:var(--text2);cursor:pointer;white-space:nowrap}
+.sortbtn:active{background:var(--press)}
+.sortbtn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.csq.match{outline:2px solid var(--accent);outline-offset:1px;border-radius:14px}
 .kebab{width:40px;height:40px;margin:-6px -4px -6px 0;color:var(--text2)}
 
 .csq textarea{margin:7px 0 3px}
@@ -411,6 +451,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 .sch-wrap{flex:1;overflow:hidden;touch-action:none;position:relative}
 .sch-svg{display:block;position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
 .sch-node{cursor:pointer}
+.sch-toggle{cursor:pointer}
 #schFlip{margin-right:auto}
 .sch-zoom{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:3}
 .sch-zoom button{width:44px;height:44px;border-radius:12px;background:var(--card);border:1px solid var(--line);color:var(--text);font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.18);cursor:pointer}
@@ -535,6 +576,25 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
     <!-- Методическая подсказка (п. 5.4) -->
     <p class="hint" id="hintLine" hidden></p>
 
+    <!-- Пре-мортем: опция, включается в настройках -->
+    <button type="button" class="premortem-btn" id="btnPremortem" hidden>Пре-мортем: а если решение провалится?</button>
+
+    <!-- Поиск по тексту последствий и вид -->
+    <div class="searchbar" id="searchBar">
+      <input type="search" id="searchInput" placeholder="Поиск по последствиям" autocomplete="off" aria-label="Поиск по последствиям">
+      <span class="search-count" id="searchCount" hidden></span>
+      <button type="button" class="sortbtn" id="sortBig" aria-pressed="false" aria-label="Крупные ветви вперед">Крупные вперед</button>
+    </div>
+
+    <!-- Фильтр последствий по сферам: люди / власть / дело -->
+    <div class="tagfilter" id="tagFilter">
+      <span class="tf-label">Фильтр:</span>
+      <button type="button" class="tf people" data-tf="people" aria-pressed="false" aria-label="Только люди">Л</button>
+      <button type="button" class="tf power" data-tf="power" aria-pressed="false" aria-label="Только власть">В</button>
+      <button type="button" class="tf matter" data-tf="matter" aria-pressed="false" aria-label="Только дело">Д</button>
+      <button type="button" class="tf-reset" id="tfReset" hidden>Сбросить</button>
+    </div>
+
     <!-- Дерево последствий: строится рендерером из данных документа -->
     <div id="cards"></div>
 
@@ -639,6 +699,14 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
       </div>
     </div>
 
+    <div class="set-row">
+      <div class="set-label">Пре-мортем</div>
+      <div class="seg" id="preSeg" role="group" aria-label="Пре-мортем">
+        <button data-pre-opt="on">Вкл</button>
+        <button data-pre-opt="off">Выкл</button>
+      </div>
+    </div>
+
     <div class="set-about">
       <p class="set-h">О приложении «А что потом?»</p>
       <p>Инструмент анализа последствий решений. Помогает записать решение и разложить его последствия: положительные и отрицательные, близкие и отдаленные, чтобы увидеть картину целиком до того, как решение принято.</p>
@@ -668,12 +736,16 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 <div class="pop" id="popMain" hidden>
   <button id="miAbout"><svg class="icon"><use href="#i-set"/></svg>Настройки</button>
   <hr>
+  <button id="miExpandAll"><svg class="icon"><use href="#i-chev"/></svg>Развернуть все ветви</button>
+  <button id="miCollapseAll"><svg class="icon"><use href="#i-chev"/></svg>Свернуть все ветви</button>
+  <hr>
   <button class="danger" id="miDelDoc"><svg class="icon"><use href="#i-trash"/></svg>Удалить анализ</button>
 </div>
 
 <div class="pop" id="popCard" hidden>
   <button id="miCardMx"><svg class="icon"><use href="#i-mx"/></svg>Показать матрицей</button>
   <button id="miCardScheme"><svg class="icon"><use href="#i-tree"/></svg>Показать схемой</button>
+  <button id="miCardDup"><svg class="icon"><use href="#i-copy"/></svg>Дублировать ветвь</button>
   <button class="danger" id="miCardDel"><svg class="icon"><use href="#i-trash"/></svg>Удалить</button>
 </div>
 
@@ -712,8 +784,8 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.3.2';
-var APP_STEP = 'ТЗ 1.0 + дополнения, схема: свободный сдвиг, PNG';
+var APP_VERSION = 'v1.6.0';
+var APP_STEP = 'ТЗ 1.0 + дополнения: теги, пре-мортем, поиск и инструменты больших разборов';
 
 function $(s, r){ return (r || document).querySelector(s); }
 function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -775,7 +847,20 @@ function makeDoc(){
     root: { id: uid(), text: '', children: [] } };
 }
 function makeNode(sign, horizon){
-  return { id: uid(), text: '', sign: sign, horizon: horizon, collapsed: false, children: [] };
+  return { id: uid(), text: '', sign: sign, horizon: horizon, collapsed: false, tags: [], children: [] };
+}
+/* Сферы последствия (теги): порядок фиксирован для показа Л, В, Д */
+var TAG_CODES = ['people', 'power', 'matter'];
+var TAG_LETTER = { people: '\u041B', power: '\u0412', matter: '\u0414' }; /* Л, В, Д */
+var TAG_NAME = { people: 'люди', power: 'власть', matter: 'дело' };
+/* Нормализованный список тегов узла: только допустимые коды, без дублей, в фиксированном порядке */
+function nodeTags(n){
+  var src = (n && Array.isArray(n.tags)) ? n.tags : [];
+  var out = [];
+  for (var i = 0; i < TAG_CODES.length; i++){
+    if (src.indexOf(TAG_CODES[i]) !== -1){ out.push(TAG_CODES[i]); }
+  }
+  return out;
 }
 function touch(){ if (doc){ doc.updatedAt = new Date().toISOString(); scheduleSave(); } }
 
@@ -936,6 +1021,42 @@ $('#quoteSeg').addEventListener('click', function(e){
   scheduleSave();
   applyQuotesSeg();
   applyQuotes();
+});
+
+/* ===== Пре-мортем (опция): помощник генерации причин провала ===== */
+function premortemOn(){ return store.settings.premortem === true; }
+function applyPreSeg(){
+  $$('#preSeg [data-pre-opt]').forEach(function(b){
+    b.classList.toggle('active', (b.getAttribute('data-pre-opt') === 'on') === premortemOn());
+  });
+}
+function applyPremortem(){
+  var btn = $('#btnPremortem');
+  if (btn){ btn.hidden = !premortemOn(); }
+}
+$('#preSeg').addEventListener('click', function(e){
+  var b = e.target.closest('[data-pre-opt]');
+  if (!b){ return; }
+  store.settings.premortem = b.getAttribute('data-pre-opt') === 'on';
+  scheduleSave();
+  applyPreSeg();
+  applyPremortem();
+});
+$('#btnPremortem').addEventListener('click', function(){
+  if (!doc){ return; }
+  confirmDlg('Представьте: прошел год, и решение обернулось провалом. Что именно пошло не так? Добавьте причину как отрицательное отдаленное последствие и продолжите цепочку.',
+    function(){
+      var n = makeNode('minus', 'far');
+      doc.root.children.push(n);
+      doc.lastHorizon = 'far';
+      resetTagFilter();
+      syncTagFilter();
+      touch();
+      rerender(n.id);
+      var ta = $('textarea[data-id="' + n.id + '"]', editor);
+      if (ta && ta.scrollIntoView){ ta.scrollIntoView({ block: 'nearest' }); }
+    },
+    'Добавить причину');
 });
 
 /* ===== Индикатор полноты анализа (5 критериев, считается из дерева, в хранилище не пишется).
@@ -1142,9 +1263,10 @@ function addPair(parentId){
 
 function renderCard(n, depth){
   var hasKids = n.children.length > 0;
-  var isOpen = hasKids ? !n.collapsed : !!openedEmpty[n.id];
+  var isOpen = (filteringOn() && hasKids) ? true : (hasKids ? !n.collapsed : !!openedEmpty[n.id]);
 
-  var card = el('article', 'csq ' + (n.sign === 'plus' ? 'plus' : 'minus') + (isOpen ? ' open' : ''));
+  var card = el('article', 'csq ' + (n.sign === 'plus' ? 'plus' : 'minus') +
+    (isOpen ? ' open' : '') + (searchOn() && searchPass(n) ? ' match' : ''));
   card.setAttribute('data-id', n.id);
 
   var top = el('div', 'csq-top');
@@ -1154,7 +1276,18 @@ function renderCard(n, depth){
   var chH = el('button', 'chip hor');
   chH.textContent = n.horizon === 'near' ? 'близкое' : 'отдаленное';
   chH.setAttribute('aria-label', 'Горизонт');
-  top.appendChild(chS); top.appendChild(chH); top.appendChild(el('span', 'sp'));
+  top.appendChild(chS); top.appendChild(chH);
+  var nt = nodeTags(n);
+  for (var ci = 0; ci < TAG_CODES.length; ci++){
+    var code = TAG_CODES[ci];
+    var chT = el('button', 'chip tag ' + code + (nt.indexOf(code) !== -1 ? ' on' : ''));
+    chT.textContent = TAG_LETTER[code];
+    chT.setAttribute('data-tag', code);
+    chT.setAttribute('aria-pressed', nt.indexOf(code) !== -1 ? 'true' : 'false');
+    chT.setAttribute('aria-label', 'Сфера: ' + TAG_NAME[code]);
+    top.appendChild(chT);
+  }
+  top.appendChild(el('span', 'sp'));
   top.appendChild(iconBtn('iconbtn kebab', 'Меню карточки', '#i-dots'));
   card.appendChild(top);
 
@@ -1186,8 +1319,8 @@ function renderCard(n, depth){
   var kidsIn = el('div', 'kids-in');
   var branch = el('div', 'branch');
   branch.style.setProperty('--ind', (depth + 1) <= 3 ? '14px' : '6px');
-  var g = grouped(n.children);
-  for (var i = 0; i < g.length; i++){ branch.appendChild(renderCard(g[i], depth + 1)); }
+  var g = displayOrder(n.children);
+  for (var i = 0; i < g.length; i++){ if (nodeVisible(g[i])){ branch.appendChild(renderCard(g[i], depth + 1)); } }
   branch.appendChild(addPair(n.id));
   kidsIn.appendChild(branch);
   kids.appendChild(kidsIn);
@@ -1196,10 +1329,79 @@ function renderCard(n, depth){
   return card;
 }
 
+/* Фильтр, поиск и сортировка: только в памяти UI, в документ и снимок не попадают (сбрасываются при смене анализа) */
+var tagFilter = { people: false, power: false, matter: false };
+var searchText = '';
+var sortBig = false;   /* вид: крупные ветви вперед, данные не меняет */
+function tagFilterOn(){ return tagFilter.people || tagFilter.power || tagFilter.matter; }
+function searchQuery(){ return searchText.replace(/\s+/g, ' ').trim().toLowerCase(); }
+function searchOn(){ return searchQuery().length > 0; }
+function filteringOn(){ return tagFilterOn() || searchOn(); }
+function nodeMatchesFilter(n){
+  var t = nodeTags(n);
+  return (tagFilter.people && t.indexOf('people') !== -1) ||
+         (tagFilter.power && t.indexOf('power') !== -1) ||
+         (tagFilter.matter && t.indexOf('matter') !== -1);
+}
+function tagPass(n){ return !tagFilterOn() || nodeMatchesFilter(n); }
+function searchPass(n){ return !searchOn() || (isFilled(n) && n.text.toLowerCase().indexOf(searchQuery()) !== -1); }
+/* Прямое совпадение узла со всеми активными условиями (теги И поиск) */
+function nodeDirectMatch(n){ return tagPass(n) && searchPass(n); }
+/* Узел виден, если сам совпал или у него есть видимый потомок (родитель совпадения остается для контекста) */
+function nodeVisible(n){
+  if (!filteringOn()){ return true; }
+  if (nodeDirectMatch(n)){ return true; }
+  for (var i = 0; i < n.children.length; i++){ if (nodeVisible(n.children[i])){ return true; } }
+  return false;
+}
+/* Сколько узлов прямо совпали (для счетчика поиска) */
+function countDirectMatches(){
+  var c = 0;
+  (function walk(n){
+    for (var i = 0; i < n.children.length; i++){
+      if (nodeDirectMatch(n.children[i])){ c++; }
+      walk(n.children[i]);
+    }
+  })(doc.root);
+  return c;
+}
+/* Число заполненных потомков ветви (для сортировки по величине) */
+function filledDescCount(n){
+  var c = 0;
+  (function walk(x){
+    for (var i = 0; i < x.children.length; i++){
+      if (isFilled(x.children[i])){ c++; }
+      walk(x.children[i]);
+    }
+  })(n);
+  return c;
+}
+/* Порядок показа в редакторе: плюсы перед минусами; при сортировке внутри групп крупные ветви вперед (стабильно) */
+function displayOrder(children){
+  var g = grouped(children);
+  if (!sortBig){ return g; }
+  var idx = {};
+  for (var i = 0; i < g.length; i++){ idx[g[i].id] = i; }
+  return g.slice().sort(function(a, b){
+    var d = filledDescCount(b) - filledDescCount(a);
+    return d !== 0 ? d : (idx[a.id] - idx[b.id]);
+  });
+}
+
 function renderCards(){
   while (cardsEl.firstChild){ cardsEl.removeChild(cardsEl.firstChild); }
-  var g = grouped(doc.root.children);
-  for (var i = 0; i < g.length; i++){ cardsEl.appendChild(renderCard(g[i], 1)); }
+  var g = displayOrder(doc.root.children);
+  var shown = 0;
+  for (var i = 0; i < g.length; i++){
+    if (nodeVisible(g[i])){ cardsEl.appendChild(renderCard(g[i], 1)); shown++; }
+  }
+  if (filteringOn() && shown === 0){
+    var none = el('p', 'hint');
+    none.textContent = searchOn()
+      ? 'Ничего не найдено. Измените запрос или снимите фильтры.'
+      : 'Нет последствий с выбранными сферами. Снимите фильтр или поставьте метки на карточках.';
+    cardsEl.appendChild(none);
+  }
 }
 
 function updateBalance(){
@@ -1243,6 +1445,7 @@ function rerender(focusId){
   renderCards();
   updateBalance();
   updateHint();
+  updateSearchCount();
   growAll(cardsEl);
   if (fid){
     var ta = $('textarea[data-id="' + fid + '"]', editor);
@@ -1268,6 +1471,9 @@ function enterEditor(d, asSnapshot){
   taDecision.value = doc.root.text;
   taDecision.setAttribute('data-id', doc.root.id);
   edTitle.textContent = trim60(doc.root.text);
+  resetTagFilter();
+  syncTagFilter();
+  resetView();
   renderCards();
   updateBalance();
   updateHint();
@@ -1408,6 +1614,11 @@ function sanitizeNode(raw, depth, ctx){
                    raw && raw.horizon === 'far' ? 'far' : 'near');
   if (raw && typeof raw.text === 'string'){ n.text = raw.text.slice(0, 2000); }
   n.collapsed = !!(raw && raw.collapsed === true);
+  if (raw && Array.isArray(raw.tags)){
+    for (var ti = 0; ti < TAG_CODES.length; ti++){
+      if (raw.tags.indexOf(TAG_CODES[ti]) !== -1){ n.tags.push(TAG_CODES[ti]); }
+    }
+  }
   if (raw && Array.isArray(raw.children)){
     for (var i = 0; i < raw.children.length; i++){
       var c = raw.children[i];
@@ -1518,7 +1729,75 @@ document.addEventListener('click', function(e){
     chip.textContent = f.node.horizon === 'near' ? 'близкое' : 'отдаленное';
     touch();
     updateBalance();
+  } else if (chip.classList.contains('tag')){
+    var code = chip.getAttribute('data-tag');
+    if (TAG_CODES.indexOf(code) === -1){ return; }
+    var arr = f.node.tags || (f.node.tags = []);
+    var idx = arr.indexOf(code);
+    if (idx === -1){ arr.push(code); } else { arr.splice(idx, 1); }
+    var on = arr.indexOf(code) !== -1;
+    chip.classList.toggle('on', on);
+    chip.setAttribute('aria-pressed', on ? 'true' : 'false');
+    touch();
+    if (tagFilterOn()){ rerender(); }
   }
+});
+
+/* ===== Фильтр по сферам (люди/власть/дело) ===== */
+function syncTagFilter(){
+  $$('#tagFilter .tf').forEach(function(b){
+    var on = !!tagFilter[b.getAttribute('data-tf')];
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  $('#tfReset').hidden = !tagFilterOn();
+}
+function resetTagFilter(){
+  tagFilter.people = false; tagFilter.power = false; tagFilter.matter = false;
+}
+$('#tagFilter').addEventListener('click', function(e){
+  var b = e.target.closest('.tf');
+  if (b){
+    var code = b.getAttribute('data-tf');
+    tagFilter[code] = !tagFilter[code];
+    syncTagFilter();
+    if (doc){ rerender(); }
+    return;
+  }
+  if (e.target.closest('#tfReset')){
+    resetTagFilter();
+    syncTagFilter();
+    if (doc){ rerender(); }
+  }
+});
+
+/* ===== Поиск по тексту последствий и сортировка вида ===== */
+function updateSearchCount(){
+  var el = $('#searchCount');
+  if (!searchOn()){ el.hidden = true; el.textContent = ''; return; }
+  el.textContent = countDirectMatches() + ' совпад.';
+  el.hidden = false;
+}
+function resetView(){
+  searchText = '';
+  sortBig = false;
+  var inp = $('#searchInput');
+  if (inp){ inp.value = ''; }
+  $('#sortBig').classList.remove('on');
+  $('#sortBig').setAttribute('aria-pressed', 'false');
+  $('#searchCount').hidden = true;
+  $('#searchCount').textContent = '';
+}
+$('#searchInput').addEventListener('input', function(){
+  searchText = this.value;
+  if (doc){ rerender(); }
+  updateSearchCount();
+});
+$('#sortBig').addEventListener('click', function(){
+  sortBig = !sortBig;
+  this.classList.toggle('on', sortBig);
+  this.setAttribute('aria-pressed', sortBig ? 'true' : 'false');
+  if (doc){ rerender(); }
 });
 
 /* ===== Свертывание: "А что потом?" и шеврон (п. 5.7-5.8) ===== */
@@ -1598,6 +1877,26 @@ $('#miCardDel').addEventListener('click', function(){
   });
 });
 
+/* Глубокая копия ветви с новыми id (для дублирования внутри анализа) */
+function cloneNode(n){
+  var c = makeNode(n.sign, n.horizon);
+  c.text = n.text;
+  c.collapsed = n.collapsed;
+  c.tags = nodeTags(n).slice();
+  for (var i = 0; i < n.children.length; i++){ c.children.push(cloneNode(n.children[i])); }
+  return c;
+}
+$('#miCardDup').addEventListener('click', function(){
+  closeMenu();
+  if (!currentNodeId){ return; }
+  var f = findNode(doc.root, currentNodeId);
+  if (!f || !f.parent){ return; }
+  var copy = cloneNode(f.node);
+  f.parent.children.splice(f.index + 1, 0, copy);
+  touch();
+  rerender(copy.id);
+});
+
 /* ===== Матрица (п. 6): строится из данных узла ===== */
 var mx = $('#mx');
 var SIGN_LABEL = { plus: 'Положительные', minus: 'Отрицательные' };
@@ -1628,6 +1927,14 @@ function mxCell(items, sign, hor){
     var c = items[i];
     var item = el('div', 'mx-item');
     item.appendChild(document.createTextNode(c.text.trim()));
+    var mt = nodeTags(c);
+    if (mt.length){
+      var mtg = el('span', 'mx-tags');
+      for (var k = 0; k < mt.length; k++){
+        var mb = el('b', mt[k]); mb.textContent = TAG_LETTER[mt[k]]; mtg.appendChild(mb);
+      }
+      item.appendChild(mtg);
+    }
     if (c.children.length){
       item.className = 'mx-item mx-open';
       item.setAttribute('data-id', c.id);
@@ -1786,13 +2093,21 @@ function schSvg(name, attrs){
 }
 
 /* Посчитанные цвета активной темы - чтобы экспортированный SVG был самодостаточным */
-function schColors(){
+function schIsDark(){
+  return (themeMode === 'dark') || (themeMode === 'auto' && mediaDark.matches);
+}
+function schColors(light){
+  if (light){
+    return { bg: '#ffffff', card: '#ffffff', text: '#20242a', line: '#e3e1db', accent: '#34507b', plus: '#2e7d52', minus: '#c2563b',
+      tagPeople: '#2d6e8e', tagPower: '#7a4fa3', tagMatter: '#b8742a' };
+  }
   var cs = getComputedStyle(document.documentElement);
   function pick(name, fb){
     var v = cs.getPropertyValue(name);
     v = v ? v.replace(/\s+/g, '') : '';
     return v || fb;
   }
+  var dark = schIsDark();
   return {
     bg: pick('--bg', '#ffffff'),
     card: pick('--card', '#ffffff'),
@@ -1800,7 +2115,10 @@ function schColors(){
     line: pick('--line', '#e3e1db'),
     accent: pick('--accent', '#34507b'),
     plus: pick('--plus', '#2e7d52'),
-    minus: pick('--minus', '#c2563b')
+    minus: pick('--minus', '#c2563b'),
+    tagPeople: dark ? '#6fb3d2' : '#2d6e8e',
+    tagPower: dark ? '#b08fd8' : '#7a4fa3',
+    tagMatter: dark ? '#e0a766' : '#b8742a'
   };
 }
 
@@ -1822,11 +2140,17 @@ function schHasFilled(n){
   for (var i = 0; i < n.children.length; i++){ if (schHasFilled(n.children[i])){ return true; } }
   return false;
 }
-function schKids(n){
+/* Дочерние ветви с заполнением, без учета сворачивания */
+function schRealKids(n){
   var g = grouped(n.children);
   var out = [];
   for (var i = 0; i < g.length; i++){ if (schHasFilled(g[i])){ out.push(g[i]); } }
   return out;
+}
+/* С учетом сворачивания: свернутый узел не показывает детей (отображаемый корень всегда раскрыт) */
+function schKids(n){
+  if (n.collapsed && n !== schRoot){ return []; }
+  return schRealKids(n);
 }
 
 /* Перенос текста по числу символов: до maxLines строк, дальше многоточие */
@@ -1923,7 +2247,7 @@ function schTopPath(x, y, w, r){
     ' A' + r + ' ' + r + ' 0 0 1 ' + (x + r) + ' ' + y + ' Z';
 }
 
-function schDrawNode(svg, rec, colors, maxChars){
+function schDrawNode(svg, rec, colors, maxChars, badges){
   var n = rec.node;
   var isDecision = (n === doc.root);
   var isFocus = (n === schRoot);
@@ -1945,7 +2269,9 @@ function schDrawNode(svg, rec, colors, maxChars){
     fill: schTextOn(headColor) });
   ht.appendChild(document.createTextNode(headText));
   g.appendChild(ht);
-  var lines = schWrap(bodyText, maxChars, SCH_MAX_LINES);
+  var nt = isDecision ? [] : nodeTags(n);
+  var bodyMax = nt.length ? Math.max(6, maxChars - (Math.ceil(nt.length * 1.7) + 2)) : maxChars;
+  var lines = schWrap(bodyText, bodyMax, SCH_MAX_LINES);
   var bt = schSvg('text', { x: schR1(rec.x + SCH_PAD_X), y: schR1(rec.y + SCH_HEAD_H + 16),
     'font-size': 13, fill: colors.text });
   for (var i = 0; i < lines.length; i++){
@@ -1954,17 +2280,36 @@ function schDrawNode(svg, rec, colors, maxChars){
     bt.appendChild(ts);
   }
   g.appendChild(bt);
+  if (nt.length){
+    var tagFill = { people: colors.tagPeople, power: colors.tagPower, matter: colors.tagMatter };
+    var tgs = schSvg('text', { x: schR1(rec.x + rec.w - SCH_PAD_X), y: schR1(rec.y + SCH_HEAD_H + 16),
+      'text-anchor': 'end', 'font-size': 11, 'font-weight': 700 });
+    for (var ki = 0; ki < nt.length; ki++){
+      var tsp = schSvg('tspan', { fill: tagFill[nt[ki]], dx: ki === 0 ? 0 : 2 });
+      tsp.appendChild(document.createTextNode(TAG_LETTER[nt[ki]]));
+      tgs.appendChild(tsp);
+    }
+    g.appendChild(tgs);
+  }
+  if (badges && !isFocus && schRealKids(n).length > 0){
+    var bx, by;
+    if (schOrient === 'tb'){ bx = rec.x + rec.w / 2; by = rec.y + rec.h; }
+    else { bx = rec.x + rec.w; by = rec.y + rec.h / 2; }
+    var tg = schSvg('g', { 'class': 'sch-toggle', 'data-id': n.id, role: 'button', tabindex: '0' });
+    tg.appendChild(schSvg('circle', { cx: schR1(bx), cy: schR1(by), r: 11, fill: colors.card, stroke: colors.line, 'stroke-width': 1.5 }));
+    var tgt = schSvg('text', { x: schR1(bx), y: schR1(by), 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': 15, 'font-weight': 700, fill: colors.text });
+    tgt.appendChild(document.createTextNode(n.collapsed ? '+' : '\u2212'));
+    tg.appendChild(tgt);
+    g.appendChild(tg);
+  }
   svg.appendChild(g);
 }
 
-function schRender(){
-  var colors = schColors();
-  schLineColor = colors.line;
-  schAccent = colors.accent;
+/* Построение SVG полотна по текущему корню и ориентации.
+   colors - палитра (живая по теме или принудительно светлая для экспорта),
+   badges - рисовать ли бейджи сворачивания (на экране да, в экспорте нет). */
+function schBuildSvg(colors, badges){
   var L = schLayout(schRoot, schOrient);
-  schBaseW = L.w; schBaseH = L.h;
-  var wrap = $('#schWrap');
-  while (wrap.firstChild){ wrap.removeChild(wrap.firstChild); }
   var svg = schSvg('svg', { width: L.w, height: L.h, viewBox: '0 0 ' + L.w + ' ' + L.h });
   svg.setAttribute('class', 'sch-svg');
   svg.setAttribute('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif');
@@ -1975,7 +2320,18 @@ function schRender(){
       stroke: colors.line, 'stroke-width': 1.5 }));
   }
   var maxChars = Math.max(6, Math.floor((SCH_BOX_W - SCH_PAD_X * 2) / 7.3));
-  for (i = 0; i < L.nodes.length; i++){ schDrawNode(svg, L.nodes[i], colors, maxChars); }
+  for (i = 0; i < L.nodes.length; i++){ schDrawNode(svg, L.nodes[i], colors, maxChars, badges); }
+  return svg;
+}
+function schRender(){
+  var colors = schColors();
+  schLineColor = colors.line;
+  schAccent = colors.accent;
+  var svg = schBuildSvg(colors, true);
+  schBaseW = parseFloat(svg.getAttribute('width'));
+  schBaseH = parseFloat(svg.getAttribute('height'));
+  var wrap = schWrapEl;
+  while (wrap.firstChild){ wrap.removeChild(wrap.firstChild); }
   wrap.appendChild(svg);
   schSel = null;
   schCap('');
@@ -2041,13 +2397,38 @@ $('#schFlip').addEventListener('click', function(){
   schRender();
   schFit();
 });
+/* Сворачивание ветви прямо в схеме: тот же флаг collapsed, что и в редакторе */
+function schToggleFrom(target, root){
+  var t = target;
+  while (t && t !== root){
+    if (t.getAttribute){
+      var cl = t.getAttribute('class');
+      if (cl && (' ' + cl + ' ').indexOf(' sch-toggle ') !== -1){ return t.getAttribute('data-id'); }
+    }
+    t = t.parentNode;
+  }
+  return null;
+}
+function schToggleCollapse(id){
+  var f = findNode(schRoot, id);
+  if (!f){ return; }
+  f.node.collapsed = !f.node.collapsed;
+  scheduleSave();
+  schRender();
+  schClampView();
+  schApplyView();
+}
 schWrapEl.addEventListener('click', function(ev){
   if (schSuppressClick){ schSuppressClick = false; schMoved = false; return; }
+  var tid = schToggleFrom(ev.target, this);
+  if (tid){ schToggleCollapse(tid); return; }
   var g = schNodeFrom(ev.target, this);
   if (g){ schPick(g); } else { schClearSel(); schCap(''); }
 });
 schWrapEl.addEventListener('keydown', function(ev){
   if (ev.key !== 'Enter' && ev.key !== ' ' && ev.key !== 'Spacebar'){ return; }
+  var tid = schToggleFrom(ev.target, this);
+  if (tid){ ev.preventDefault(); schToggleCollapse(tid); return; }
   var g = schNodeFrom(ev.target, this);
   if (g){ ev.preventDefault(); schPick(g); }
 });
@@ -2133,14 +2514,9 @@ $('#miCardScheme').addEventListener('click', function(){
    Размер всегда натуральный, независимо от масштаба на экране; разрешение повышенное,
    чтобы подписи оставались четкими после сжатия в мессенджере. */
 function schSerializeBase(){
-  var svg = schWrapEl.querySelector('svg');
-  if (!svg){ return ''; }
-  var clone = svg.cloneNode(true);
-  clone.removeAttribute('style');
-  clone.setAttribute('width', schBaseW);
-  clone.setAttribute('height', schBaseH);
-  clone.setAttribute('viewBox', '0 0 ' + schBaseW + ' ' + schBaseH);
-  var s = new XMLSerializer().serializeToString(clone);
+  if (!schRoot){ return ''; }
+  var svg = schBuildSvg(schColors(true), false);
+  var s = new XMLSerializer().serializeToString(svg);
   if (s.indexOf('xmlns=') === -1){ s = s.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"'); }
   return s;
 }
@@ -2197,6 +2573,11 @@ function mdMarker(n){
   return '[' + (n.sign === 'plus' ? '+' : '-') + ' ' +
     (n.horizon === 'near' ? 'близкое' : 'отдаленное') + ']';
 }
+function mdTags(n){
+  var t = nodeTags(n), s = '';
+  for (var i = 0; i < t.length; i++){ s += '[' + TAG_LETTER[t[i]] + ']'; }
+  return s;
+}
 function balanceLine(d){
   var c = countersAll(d.root);
   return 'Баланс: близкие +' + c.nearP + '/-' + c.nearM +
@@ -2218,7 +2599,7 @@ function buildMd(d){
       var ch = g[i];
       if (!isFilled(ch) && !ch.children.length){ continue; }
       var pad = new Array(depth + 1).join('    ');
-      lines.push(pad + '- ' + mdMarker(ch) + ' ' +
+      lines.push(pad + '- ' + mdMarker(ch) + mdTags(ch) + ' ' +
         (isFilled(ch) ? flatLine(ch.text) : '(без текста)'));
       walk(ch, depth + 1);
     }
@@ -2254,6 +2635,14 @@ function buildNotesHtml(d){
       b.setAttribute('style', 'color:' + (ch.sign === 'plus' ? '#2E7D52' : '#C2563B'));
       b.textContent = mdMarker(ch);
       l.appendChild(b);
+      var ntg = nodeTags(ch);
+      var TAG_HEX = { people: '#2D6E8E', power: '#7A4FA3', matter: '#B8742A' };
+      for (var tj = 0; tj < ntg.length; tj++){
+        var tb = el('b');
+        tb.setAttribute('style', 'color:' + TAG_HEX[ntg[tj]]);
+        tb.textContent = ' ' + TAG_LETTER[ntg[tj]];
+        l.appendChild(tb);
+      }
       l.appendChild(document.createTextNode(' ' +
         (isFilled(ch) ? flatLine(ch.text) : '(без текста)')));
       walk(ch, l);
@@ -2432,6 +2821,22 @@ $('#miDelDoc').addEventListener('click', function(){
   });
 });
 
+/* Свернуть/развернуть все ветви разом (для больших разборов) */
+function setAllCollapsed(val){
+  if (!doc){ return; }
+  (function walk(n){
+    for (var i = 0; i < n.children.length; i++){
+      var c = n.children[i];
+      if (c.children.length){ c.collapsed = val; }
+      walk(c);
+    }
+  })(doc.root);
+  touch();
+  rerender();
+}
+$('#miExpandAll').addEventListener('click', function(){ closeMenu(); setAllCollapsed(false); });
+$('#miCollapseAll').addEventListener('click', function(){ closeMenu(); setAllCollapsed(true); });
+
 /* Меню документа в списке (п. 4.4) */
 $('#miDocDup').addEventListener('click', function(){
   closeMenu();
@@ -2558,6 +2963,8 @@ document.addEventListener('keydown', function(e){
 /* ===== Старт (п. 4.2) ===== */
 applyTheme();
 applyQuotesSeg();
+applyPreSeg();
+applyPremortem();
 if (/^#d=/.test(location.hash || '')){
   /* Режим снимка (п. 7.5): документы в хранилище не затрагиваются до явного сохранения */
   var packed = location.hash.slice(3);
