@@ -1,4 +1,4 @@
-<!-- А что потом? v1.12.0 | Режим проверки результата (сбылось/частично/не сбылось), версия без описания | 14.06.2026 -->
+<!-- А что потом? v1.13.0 | Галочка режима проверки отражает состояние | 14.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -286,6 +286,8 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 .rb-no{color:var(--minus)}
 .rb-none{color:var(--text2)}
 .rb-note{font-size:12px;color:var(--text2);margin-top:8px;font-weight:400}
+#miReview .icon{visibility:hidden}
+#miReview.on .icon{visibility:visible;color:var(--plus)}
 .kebab{width:40px;height:40px;margin:-6px -4px -6px 0;color:var(--text2)}
 
 .csq textarea{margin:7px 0 3px}
@@ -843,7 +845,7 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.12.0';
+var APP_VERSION = 'v1.13.0';
 var APP_STEP = 'ТЗ 1.0 + дополнения: координаты Л/В/Д, подсветка фильтра, правки формулировок';
 
 function $(s, r){ return (r || document).querySelector(s); }
@@ -2985,7 +2987,10 @@ $('#btnExpNotes').addEventListener('click', function(){
   }
 });
 
-$('#btnMenu').addEventListener('click', function(){ openMenu($('#popMain'), $('#btnMenu')); });
+$('#btnMenu').addEventListener('click', function(){
+  $('#miReview').classList.toggle('on', reviewOn);
+  openMenu($('#popMain'), $('#btnMenu'));
+});
 $('#miDelDoc').addEventListener('click', function(){
   closeMenu();
   confirmDlg('Удалить анализ целиком?', function(){
