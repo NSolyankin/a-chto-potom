@@ -1,4 +1,4 @@
-<!-- А что потом? v1.14.0 | Поиск и сортировка в перечне анализов | 15.06.2026 -->
+<!-- А что потом? v1.14.1 | В списке «Поиск по данным»; переход из поиска к нужному последствию; убран мертвый код | 15.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -434,7 +434,6 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 .pop button:active{background:var(--press)}
 .pop button .icon{color:var(--text2)}
 .pop .danger,.pop .danger .icon{color:var(--minus)}
-.pop-label{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text2);padding:6px 10px 2px}
 
 #toast{
   position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));z-index:70;
@@ -459,13 +458,6 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 #bannerTg p{flex:1;margin:0;font-size:14px}
 #bannerTg button{color:var(--accent);font-weight:600;min-height:44px;padding:0 8px;border-radius:10px}
 
-/* Временные элементы шага 1: удаляются на следующих шагах */
-.devnote{text-align:center;margin-top:16px}
-.devnote button{
-  font-size:12px;color:var(--text2);
-  border:1px dashed var(--line);border-radius:999px;
-  min-height:32px;padding:4px 12px;
-}
 
 /* ===== Схема ===== */
 .sch{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column}
@@ -547,7 +539,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
       <div class="list-head">Мои данные</div>
 
       <div class="searchbar">
-        <input type="search" id="listSearch" placeholder="Поиск по анализам" autocomplete="off" aria-label="Поиск">
+        <input type="search" id="listSearch" placeholder="Поиск по данным" autocomplete="off" aria-label="Поиск">
         <select id="listSort" class="lsort" aria-label="Сортировка">
           <option value="upd">по изменению</option>
           <option value="crt">по созданию</option>
@@ -856,8 +848,7 @@ var LZString=function(){var r=String.fromCharCode,n="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.14.0';
-var APP_STEP = 'ТЗ 1.0 + дополнения: координаты Л/В/Д, подсветка фильтра, правки формулировок';
+var APP_VERSION = 'v1.14.1';
 
 function $(s, r){ return (r || document).querySelector(s); }
 function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -1752,7 +1743,11 @@ docListEl.addEventListener('click', function(e){
     return;
   }
   var d = store.docs[card.getAttribute('data-id')];
-  if (d){ enterEditor(d); }
+  if (d){
+    enterEditor(d);
+    var lq = listQuery.replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+    if (lq){ searchText = listQuery; $('#searchInput').value = listQuery; rerender(); updateSearchCount(); }
+  }
 });
 docListEl.addEventListener('keydown', function(e){
   if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar'){ return; }
