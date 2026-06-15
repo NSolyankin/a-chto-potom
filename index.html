@@ -1,4 +1,4 @@
-<!-- А что потом? v1.13.1 | Фокус на кнопки после перерисовки; снимок без записи; копия ветви с отметкой; пометка копии | 14.06.2026 -->
+<!-- А что потом? v1.14.0 | Поиск и сортировка в перечне анализов | 15.06.2026 -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -266,6 +266,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 .sortbtn{font-size:12px;line-height:1;border-radius:999px;padding:8px 11px;border:1px solid var(--line);background:var(--card);color:var(--text2);cursor:pointer;white-space:nowrap}
 .sortbtn:active{background:var(--press)}
 .sortbtn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.lsort{font-size:12px;border-radius:10px;padding:8px 9px;border:1px solid var(--line);background:var(--card);color:var(--text2)}
 .csq.match{outline:2px solid var(--accent);outline-offset:1px;border-radius:14px}
 .csq.ctx > .csq-top, .csq.ctx > textarea, .csq.ctx > .csq-actions{opacity:0.4}
 .outcome{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -545,6 +546,16 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
     <div id="listFull">
       <div class="list-head">Мои данные</div>
 
+      <div class="searchbar">
+        <input type="search" id="listSearch" placeholder="Поиск по анализам" autocomplete="off" aria-label="Поиск">
+        <select id="listSort" class="lsort" aria-label="Сортировка">
+          <option value="upd">по изменению</option>
+          <option value="crt">по созданию</option>
+          <option value="name">по имени</option>
+          <option value="comp">по полноте</option>
+        </select>
+      </div>
+
       <!-- Карточки документов: строит renderList из хранилища -->
       <div id="docList"></div>
 
@@ -563,7 +574,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
       <button class="btn primary" data-new>Новый анализ</button>
     </div>
 
-    <p class="storenote">Анализы хранятся в этом браузере. Важное сохраняйте ссылкой или файлом</p>
+    <p class="storenote">Данные хранятся в этом браузере. Важное сохраняйте ссылкой или файлом</p>
 
   </main>
 </section>
@@ -832,7 +843,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 
 <script>
 /*
-LZ-String 1.5.0 (встроен только набор для ссылки-снимка: compressToEncodedURIComponent и decompressFromEncodedURIComponent; неиспользуемые методы base64/UTF16/Uint8Array удалены ради размера)
+LZ-String 1.5.0 (встроены только методы ссылки-снимка: compress/decompressFromEncodedURIComponent; base64/UTF16/Uint8Array удалены ради размера)
 Copyright (c) 2013 Pieroxy <pieroxy@pieroxy.net>
 This work is free. You can redistribute it and/or modify it
 under the terms of the WTFPL, Version 2
@@ -845,7 +856,7 @@ var LZString=function(){var r=String.fromCharCode,n="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.13.1';
+var APP_VERSION = 'v1.14.0';
 var APP_STEP = 'ТЗ 1.0 + дополнения: координаты Л/В/Д, подсветка фильтра, правки формулировок';
 
 function $(s, r){ return (r || document).querySelector(s); }
@@ -948,7 +959,7 @@ function outcomeStats(d){
 function touch(){
   if (!doc){ return; }
   doc.updatedAt = new Date().toISOString();
-  if (snapshotMode){ return; } /* снимок не пишем в хранилище до явного сохранения */
+  if (snapshotMode){ return; } /* снимок не пишем в хранилище */
   scheduleSave();
 }
 
@@ -1575,8 +1586,7 @@ function rerender(focusId){
     fid = ae.getAttribute('data-id');
     ss = ae.selectionStart; se = ae.selectionEnd;
   }
-  /* Кнопка в фокусе (знак, метка, отметка результата): запоминаем карточку и набор
-     классов, чтобы вернуть фокус после полной перерисовки (доступность) */
+  /* Кнопка в фокусе: вернуть фокус на нее после перерисовки (доступность) */
   var btnCardId = null, btnSel = null;
   if (!fid && ae && ae.tagName === 'BUTTON' && ae.closest){
     var bcard = ae.closest('.csq');
@@ -1649,12 +1659,25 @@ function fmtDate(iso){
   return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.' + d.getFullYear();
 }
 
-function docsSorted(){
+var listQuery = '';
+var listSortKey = 'upd';
+function docSortTitle(d){ return (d.name || d.root.text || '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '').toLowerCase(); }
+function docSearchText(d){
+  var parts = [d.name || '', d.root.text || ''];
+  (function walk(n){ for (var i = 0; i < n.children.length; i++){ parts.push(n.children[i].text || ''); walk(n.children[i]); } })(d.root);
+  return parts.join('\n').toLowerCase();
+}
+function docsSorted(key){
   var arr = [];
   for (var k in store.docs){
     if (Object.prototype.hasOwnProperty.call(store.docs, k)){ arr.push(store.docs[k]); }
   }
-  arr.sort(function(a, b){ return a.updatedAt < b.updatedAt ? 1 : -1; });
+  arr.sort(function(a, b){
+    if (key === 'crt'){ return a.createdAt < b.createdAt ? 1 : (a.createdAt > b.createdAt ? -1 : 0); }
+    if (key === 'name'){ var an = docSortTitle(a), bn = docSortTitle(b); return an < bn ? -1 : (an > bn ? 1 : 0); }
+    if (key === 'comp'){ var dd = completeness(b).n - completeness(a).n; if (dd){ return dd; } return a.updatedAt < b.updatedAt ? 1 : -1; }
+    return a.updatedAt < b.updatedAt ? 1 : -1;
+  });
   return arr;
 }
 
@@ -1667,10 +1690,18 @@ function sumPart(sum, label, p, m){
 
 function renderList(){
   while (docListEl.firstChild){ docListEl.removeChild(docListEl.firstChild); }
-  var arr = docsSorted();
-  $('#listFull').hidden = arr.length === 0;
-  $('#listEmpty').hidden = arr.length > 0;
-  if (arr.length === 0){ renderEmptyQuote(); quoteIdx++; }
+  var all = docsSorted(listSortKey);
+  $('#listFull').hidden = all.length === 0;
+  $('#listEmpty').hidden = all.length > 0;
+  if (all.length === 0){ renderEmptyQuote(); quoteIdx++; return; }
+  var q = listQuery.replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '').toLowerCase();
+  var arr = q ? all.filter(function(d){ return docSearchText(d).indexOf(q) !== -1; }) : all;
+  if (!arr.length){
+    var none = el('p', 'hint');
+    none.textContent = 'Ничего не найдено';
+    docListEl.appendChild(none);
+    return;
+  }
   arr.forEach(function(d){
     var b = el('button', 'doc');
     b.setAttribute('data-id', d.id);
@@ -1694,6 +1725,9 @@ function renderList(){
     docListEl.appendChild(b);
   });
 }
+
+$('#listSearch').addEventListener('input', function(){ listQuery = this.value; renderList(); });
+$('#listSort').addEventListener('change', function(){ listSortKey = this.value; renderList(); });
 
 function goList(){
   var wasSnapshot = snapshotMode;
@@ -2061,7 +2095,7 @@ function cloneNode(n){
   c.text = n.text;
   c.collapsed = n.collapsed;
   c.tags = nodeTags(n).slice();
-  c.outcome = nodeOutcome(n); /* копия повторяет отметку результата, как и дубль разбора */
+  c.outcome = nodeOutcome(n); /* копия с отметкой результата */
   for (var i = 0; i < n.children.length; i++){ c.children.push(cloneNode(n.children[i])); }
   return c;
 }
