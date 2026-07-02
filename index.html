@@ -1,4 +1,4 @@
-<!-- А что потом? v1.15.0 | Надежность (D-01/02/03/06), дебаунс поиска, компактная ссылка-снимок, сворачивание без смены даты; справка ужата, D-10 | 02.07.2026 | 153558 байт -->
+<!-- А что потом? v1.17.0 | Защита от второй вкладки (D-04), политика версий хранилища (D-07), дата автора при импорте (D-16), SVG схемы (D-19) | 02.07.2026 | 157997 байт -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -53,28 +53,6 @@ html[data-theme="dark"]{
   --card-border:var(--line);
   --press:rgba(255,255,255,0.08);
   --scrim:rgba(0,0,0,0.55);
-}
-@media (prefers-color-scheme: dark){
-  html[data-theme="auto"]{
-    color-scheme:dark;
-    --bg:#15171B;
-    --card:#1E2127;
-    --text:#E8EAED;
-    --text2:#9AA1AC;
-    --line:#2C313A;
-    --accent:#8FB0DE;
-    --plus:#5BBF8C;
-    --plus-bg:rgba(91,191,140,0.12);
-    --minus:#E08568;
-    --minus-bg:rgba(224,133,104,0.12);
-    --tag-people:#6FB3D2;
-    --tag-power:#B08FD8;
-    --tag-matter:#E0A766;
-    --shadow:0 1px 2px rgba(0,0,0,0.25);
-    --card-border:var(--line);
-    --press:rgba(255,255,255,0.08);
-    --scrim:rgba(0,0,0,0.55);
-  }
 }
 
 /* ===== База ===== */
@@ -137,7 +115,6 @@ hr{border:0;border-top:1px solid var(--line);margin:6px 4px}
 .btn:active{filter:brightness(0.95)}
 .btn.primary{background:var(--accent);color:#FFFFFF}
 html[data-theme="dark"] .btn.primary{color:#15171B}
-@media (prefers-color-scheme: dark){html[data-theme="auto"] .btn.primary{color:#15171B}}
 .btn.ghost{color:var(--accent);min-height:44px}
 .btn-add{
   flex:1;min-height:44px;border-radius:12px;border:1.5px solid currentColor;
@@ -196,7 +173,6 @@ html[data-theme="dark"] .btn.primary{color:#15171B}
 .seg button + button{border-left:1px solid var(--line)}
 .seg button.active{background:var(--accent);color:#FFFFFF;font-weight:600}
 html[data-theme="dark"] .seg button.active{color:#15171B}
-@media (prefers-color-scheme: dark){html[data-theme="auto"] .seg button.active{color:#15171B}}
 .set-about{border-top:1px solid var(--line);padding-top:12px}
 .set-h{font-weight:600;margin:14px 0 6px;font-size:15px}
 .set-about p{margin:0 0 10px;font-size:14px;line-height:1.55}
@@ -530,6 +506,10 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
   </header>
   <main class="wrap">
     <div class="snapbar" id="storeWarn" hidden><p></p></div>
+    <div class="snapbar" id="tabBarL" hidden>
+      <p>Данные изменены в другой вкладке</p>
+      <button class="btn primary" id="tabReload">Обновить</button>
+    </div>
     <!-- Поврежденная ссылка-снимок (п. 7.5) -->
     <div class="snaperr" id="snapErr" hidden>
       <p>Не удалось открыть снимок: ссылка повреждена</p>
@@ -555,6 +535,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
       <div class="list-actions">
         <button class="btn primary" data-new>Новый анализ</button>
         <button class="btn ghost" id="btnImport">Импорт .json</button>
+        <button class="btn ghost" id="btnExpAll">Выгрузить все (.json)</button>
         <input type="file" id="importFile" accept=".json,application/json" hidden>
       </div>
     </div>
@@ -587,6 +568,11 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
   <main class="wrap" id="editor">
 
     <div class="snapbar" id="storeWarnEd" hidden><p></p></div>
+    <div class="snapbar" id="tabBar" hidden>
+      <p>Данные изменены в другой вкладке. Правки здесь не сохранятся</p>
+      <button class="btn primary" id="tabExp">Выгрузить .json</button>
+      <button class="btn ghost" id="tabReload2">Обновить</button>
+    </div>
     <!-- Плашка режима снимка (п. 7.5) -->
     <div class="snapbar" id="snapBar" hidden>
       <p>Открыт снимок. Изменения не сохраняются автоматически</p>
@@ -668,6 +654,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
     <div class="sch-tools">
       <button class="sch-act" id="schFlip" aria-label="Сменить ориентацию">Сверху вниз</button>
       <button class="sch-act" id="schPng" aria-label="Сохранить схему в PNG">Сохранить PNG</button>
+      <button class="sch-act" id="schSvgBtn" aria-label="Сохранить схему в SVG">Сохранить SVG</button>
     </div>
   </div>
   <div class="sch-wrap" id="schWrap"></div>
@@ -774,7 +761,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 
       <p class="set-h">Матрица и схема</p>
       <p>«Матрица» раскладывает прямые последствия по четырем квадрантам: знак на строках, горизонт на столбцах; работает для решения целиком и для любой ветки. «Схема» рисует дерево: цвет шапки означает знак, в шапке горизонт, справа метки координат; ориентацию, масштаб и сворачивание ветвей можно менять.</p>
-      <p>«Сохранить PNG» дает картинку в светлой палитре и без кружков сворачивания, даже если на экране темная тема. В картинку попадает то, что видно: свернутая ветвь останется свернутой.</p>
+      <p>«Сохранить PNG» дает картинку в светлой палитре и без кружков сворачивания, даже если на экране темная тема. В картинку попадает то, что видно: свернутая ветвь останется свернутой. «Сохранить SVG» отдает вектор для печати плакатов.</p>
 
       <p class="set-h">Pre-mortem</p>
       <p>Необязательный режим, включается в настройках. Это прием Гэри Кляйна: представить, что решение уже провалилось, и заранее назвать причины. Когда режим включен, в редакторе появляется кнопка; она помогает быстро добавить причину провала как отрицательное отдаленное последствие и продолжить цепочку.</p>
@@ -791,6 +778,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
       <p class="set-h">Советы для iPhone</p>
       <p>Добавьте страницу на экран «Домой» (Поделиться, затем «На экран Домой»): она запускается как приложение на весь экран и получает отдельное от Safari хранилище, поэтому анализы из Safari там не видны, и наоборот. Выберите что-то одно, а переносите данные через .json или ссылку-снимок. Удаление значка с экрана «Домой» удаляет и его данные: перед удалением выгрузите анализы в .json.</p>
 
+      <p class="sub" id="quotaLine"></p>
       <p class="sub" id="aboutVer">Версия</p>
       <p class="lnk">https://github.com/NSolyankin/a-chto-potom</p>
     </div>
@@ -857,7 +845,7 @@ var LZString=function(){var r=String.fromCharCode,n="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.15.0';
+var APP_VERSION = 'v1.17.0';
 
 function $(s, r){ return (r || document).querySelector(s); }
 function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -872,6 +860,9 @@ function uid(){
 var KEY = 'achtopotom_v1';
 var storageOk = true;     /* false: нет доступа (приватный режим, песочница) - работаю в памяти */
 var brokenStore = false;  /* true: сохраненный JSON был поврежден и убран в резервную копию */
+var tabLock = false;      /* true: данные изменила другая вкладка - запись заблокирована до перезагрузки (D-04) */
+var newerStore = false;   /* true: в хранилище данные более новой версии - файл их не трогает (D-07) */
+var newerRaw = null;
 var store = { version: 1, settings: { theme: 'auto', quotes: true }, activeDocId: null, docs: {} };
 
 function loadStore(){
@@ -881,6 +872,13 @@ function loadStore(){
   if (raw === null || raw === undefined){ return; }
   try {
     var data = JSON.parse(raw);
+    /* D-07: version > 1 - данные новее файла: не стираю и не пишу поверх; версию поднимаем только с миграцией и обратным мостом */
+    if (data && typeof data.version === 'number' && data.version > 1){
+      newerStore = true;
+      newerRaw = raw;
+      storageOk = false;
+      return;
+    }
     if (!data || data.version !== 1 || typeof data.docs !== 'object' || !data.docs){ throw new Error('структура'); }
     if (!data.settings || typeof data.settings !== 'object'){ data.settings = { theme: 'auto', quotes: true }; }
     store = data;
@@ -897,7 +895,7 @@ loadStore();
 
 var saveTimer = null;
 function saveNow(){
-  if (!storageOk){ return; }
+  if (!storageOk || tabLock){ return; }
   clearTimeout(saveTimer);
   saveTimer = null;
   try { localStorage.setItem(KEY, JSON.stringify(store)); }
@@ -912,6 +910,22 @@ window.addEventListener('pagehide', saveNow);
 document.addEventListener('visibilitychange', function(){
   if (document.visibilityState === 'hidden'){ saveNow(); }
 });
+
+/* D-04: стоп-кран второй вкладки - не синхронизация, а защита от взаимного затирания */
+window.addEventListener('storage', function(e){
+  if ((e.key !== null && e.key !== KEY) || tabLock || !storageOk){ return; }
+  if (!doc){ /* экран списка: перечитываю и показываю свежее */
+    loadStore();
+    renderList();
+    return;
+  }
+  tabLock = true; /* редактор: замораживаю запись до перезагрузки */
+  $('#tabBar').hidden = false;
+  $('#tabBarL').hidden = false;
+});
+$('#tabExp').addEventListener('click', function(){ $('#btnExpJson').click(); });
+$('#tabReload').addEventListener('click', function(){ location.reload(); });
+$('#tabReload2').addEventListener('click', function(){ location.reload(); });
 
 /* ===== Модель (п. 3.2-3.3) ===== */
 function makeDoc(){
@@ -1077,21 +1091,18 @@ var themeMode = THEME_ORDER.indexOf(store.settings.theme) !== -1 ? store.setting
 var mediaDark = window.matchMedia('(prefers-color-scheme: dark)');
 
 function applyTheme(){
-  document.documentElement.setAttribute('data-theme', themeMode);
   var dark = (themeMode === 'dark') || (themeMode === 'auto' && mediaDark.matches);
+  /* D-09: в атрибут идет вычисленное light/dark, @media-дубль темных токенов удален из CSS */
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
   $$('meta[name="theme-color"]').forEach(function(m){
-    if (themeMode === 'auto'){
-      m.setAttribute('content', m.getAttribute('media') &&
-        m.getAttribute('media').indexOf('dark') !== -1 ? COLOR_DARK : COLOR_LIGHT);
-    } else {
-      m.setAttribute('content', dark ? COLOR_DARK : COLOR_LIGHT);
-    }
+    m.setAttribute('content', dark ? COLOR_DARK : COLOR_LIGHT);
   });
   $$('#themeSeg [data-theme-opt]').forEach(function(b){
     b.classList.toggle('active', b.getAttribute('data-theme-opt') === themeMode);
   });
 }
 if (mediaDark.addEventListener){ mediaDark.addEventListener('change', applyTheme); }
+else if (mediaDark.addListener){ mediaDark.addListener(applyTheme); } /* D-09: старые Safari */
 
 $('#themeSeg').addEventListener('click', function(e){
   var b = e.target.closest('[data-theme-opt]');
@@ -1335,12 +1346,15 @@ var aboutBk = $('#aboutBk');
 $('#aboutVer').textContent = 'Версия ' + APP_VERSION;
 /* D-02: доступ к резервной копии; восстановления нет - копия битая */
 function bkRaw(){ try { return localStorage.getItem(KEY + '_backup'); } catch (e){ return null; } }
-function updateBkRow(){
+function updateSetInfo(){
   var at = '';
   try { at = localStorage.getItem(KEY + '_backupAt') || ''; } catch (e){}
   var has = !!bkRaw();
   $('#bkRow').hidden = !has;
   if (has){ $('#bkLbl').textContent = 'Резервная копия' + (fmtDate(at) ? ' от ' + fmtDate(at) : ''); }
+  /* D-17: занято места - предвидеть квоту до тоста об ошибке */
+  $('#quotaLine').textContent = 'Занято ~' + Math.max(1, Math.round(JSON.stringify(store).length / 1024)) +
+    ' КБ; предел браузера около 5 МБ';
 }
 $('#btnBkDown').addEventListener('click', function(){
   var raw = bkRaw();
@@ -1353,8 +1367,8 @@ $('#btnBkDel').addEventListener('click', function(){
     toast('Резервная копия удалена');
   });
 });
-$('#miAbout').addEventListener('click', function(){ closeMenu(); updateBkRow(); openLayer(aboutBk); });
-$('#btnSettings').addEventListener('click', function(){ updateBkRow(); openLayer(aboutBk); });
+$('#miAbout').addEventListener('click', function(){ closeMenu(); updateSetInfo(); openLayer(aboutBk); });
+$('#btnSettings').addEventListener('click', function(){ updateSetInfo(); openLayer(aboutBk); });
 $('#aboutOk').addEventListener('click', function(){ closeLayer(aboutBk); });
 aboutBk.addEventListener('click', function(e){ if (e.target === aboutBk) closeLayer(aboutBk); });
 
@@ -1819,6 +1833,7 @@ $('#btnBack').addEventListener('click', goList);
 /* Сохранение снимка в Мои данные (п. 7.5): копия с новым id, хеш очищается */
 $('#snapSave').addEventListener('click', function(){
   if (!doc || !snapshotMode){ return; }
+  if (tabLock){ toast('Данные изменены в другой вкладке: перезагрузите страницу'); return; } /* D-04 */
   doc.id = uid();
   store.docs[doc.id] = doc;
   store.activeDocId = doc.id;
@@ -1887,18 +1902,35 @@ importInput.addEventListener('change', function(){
   var r = new FileReader();
   r.onerror = function(){ toast('Не удалось импортировать: файл не читается'); };
   r.onload = function(){
-    var d;
-    try { d = sanitizeDoc(JSON.parse(String(r.result))); }
-    catch (e){
-      toast('Не удалось импортировать: файл поврежден или не подходит');
-      return;
+    var raw, added = 0;
+    try { raw = JSON.parse(String(r.result)); }
+    catch (e){ toast('Не удалось импортировать: файл поврежден или не подходит'); return; }
+    /* D-18: архив - массив в docs, каждый документ через sanitizeDoc со свежим id */
+    var list = (raw && Array.isArray(raw.docs)) ? raw.docs : [raw];
+    for (var i = 0; i < list.length; i++){
+      try {
+        var d = sanitizeDoc(list[i]);
+        /* D-16: дата автора из .json переносится, если валидна; снимок остается живой датой открытия */
+        var sd = list[i] && list[i].doc && typeof list[i].doc === 'object' ? list[i].doc : list[i];
+        if (sd && typeof sd.updatedAt === 'string' && !isNaN(Date.parse(sd.updatedAt))){ d.updatedAt = sd.updatedAt; }
+        store.docs[d.id] = d; added++;
+      } catch (e){}
     }
-    store.docs[d.id] = d;
+    if (!added){ toast('Не удалось импортировать: файл поврежден или не подходит'); return; }
     saveNow();
     renderList();
-    toast('Анализ импортирован');
+    toast(added === 1 ? 'Анализ импортирован' : 'Импортировано анализов: ' + added);
   };
   r.readAsText(f);
+});
+
+/* D-18: архив целиком - страховка перед чисткой браузера и перенос между хранилищами */
+$('#btnExpAll').addEventListener('click', function(){
+  var list = docsSorted();
+  if (!list.length){ toast('Пока нечего выгружать'); return; }
+  markExport(); /* D-03 */
+  shareOrDownload('a-chto-potom_archive_' + fileStamp() + '.json',
+    JSON.stringify({ version: 1, docs: list }), 'application/json');
 });
 
 /* ===== Ввод текста: без перерендера дерева (п. 5.10) ===== */
@@ -2821,6 +2853,14 @@ $('#schPng').addEventListener('click', function(){
   };
   img.src = url;
 });
+/* D-19: готовый SVG для печати плакатов - вектор не теряет четкость */
+$('#schSvgBtn').addEventListener('click', function(){
+  if (!schRoot){ return; }
+  schClearSel(); schCap('');
+  var base = schSerializeBase();
+  if (!base){ return; }
+  shareOrDownload('a-chto-potom_shema_' + fileStamp() + '.svg', base, 'image/svg+xml');
+});
 
 /* ===== Шапка редактора: экспорт и меню ===== */
 var sheetBk = $('#sheetBk');
@@ -3286,6 +3326,11 @@ if (!storageOk){ /* D-01: нет доступа к хранилищу */
     w.hidden = false;
   });
   toast(swm);
+}
+if (newerStore){ /* D-07: предлагаю унести данные как есть */
+  confirmDlg('Данные созданы более новой версией приложения. Эта версия их не изменит. Выгрузить данные как есть?',
+    function(){ shareOrDownload('a-chto-potom_backup_' + fileStamp() + '.json', newerRaw, 'application/json'); },
+    'Выгрузить');
 }
 })();
 </script>
