@@ -1,4 +1,4 @@
-<!-- А что потом? v1.14.1 | В списке «Поиск по данным»; переход из поиска к нужному последствию; убран мертвый код | 15.06.2026 -->
+<!-- А что потом? v1.15.0 | Надежность (D-01/02/03/06), дебаунс поиска, компактная ссылка-снимок, сворачивание без смены даты; справка ужата, D-10 | 02.07.2026 | 153558 байт -->
 <!DOCTYPE html>
 <html lang="ru" data-theme="auto">
 <head>
@@ -529,6 +529,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
     </div>
   </header>
   <main class="wrap">
+    <div class="snapbar" id="storeWarn" hidden><p></p></div>
     <!-- Поврежденная ссылка-снимок (п. 7.5) -->
     <div class="snaperr" id="snapErr" hidden>
       <p>Не удалось открыть снимок: ссылка повреждена</p>
@@ -560,8 +561,8 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
 
     <div id="listEmpty" hidden>
       <figure class="quote">
-        <blockquote>«Побеждает тот, кто способен всесторонне оценить последствия своих решений»</blockquote>
-        <figcaption>В.К. Тарасов. Управленческая элита: как мы ее отбираем и готовим</figcaption>
+        <blockquote></blockquote>
+        <figcaption></figcaption>
       </figure>
       <button class="btn primary" data-new>Новый анализ</button>
     </div>
@@ -585,6 +586,7 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
   </header>
   <main class="wrap" id="editor">
 
+    <div class="snapbar" id="storeWarnEd" hidden><p></p></div>
     <!-- Плашка режима снимка (п. 7.5) -->
     <div class="snapbar" id="snapBar" hidden>
       <p>Открыт снимок. Изменения не сохраняются автоматически</p>
@@ -682,7 +684,6 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
   <div class="sheet" role="dialog" aria-label="Экспорт">
     <div class="handle"></div>
     <h2>Экспорт</h2>
-    <button class="row" id="btnExpCopyMd"><svg class="icon"><use href="#i-copy"/></svg>Скопировать md</button>
     <button class="row" id="btnExpDownMd"><svg class="icon"><use href="#i-export"/></svg>Поделиться .md</button>
     <button class="row" id="btnExpNotes"><svg class="icon"><use href="#i-copy"/></svg>Скопировать для Заметок</button>
     <button class="row" id="btnExpObsidian"><svg class="icon"><use href="#i-export"/></svg>Сохранить в Obsidian</button>
@@ -742,45 +743,53 @@ html[data-theme="dark"] .seg button.active{color:#15171B}
       </div>
     </div>
 
+    <div class="set-row" id="bkRow" hidden>
+      <div class="set-label" id="bkLbl"></div>
+      <div class="seg">
+        <button id="btnBkDown">Выгрузить .json</button>
+        <button id="btnBkDel">Удалить</button>
+      </div>
+    </div>
+
     <div class="set-about">
       <p class="set-h">О приложении «А что потом?»</p>
       <p>Инструмент анализа последствий решений. Помогает записать решение и разложить его последствия: положительные и отрицательные, близкие и отдаленные, чтобы увидеть картину целиком до того, как решение принято.</p>
       <p>Методическая основа: слова Владимира Тарасова «Как правило, побеждает тот, кто способен всесторонне оценить последствия своих решений». Приложение подталкивает искать минусы там, где видны одни плюсы, и наоборот, и оценивать не решение целиком, а каждое его последствие.</p>
 
       <p class="set-h">Решение и название</p>
-      <p>В поле «Решение» запишите, что анализируете. Поле «Название» необязательное: впишете короткое имя - оно станет заголовком анализа в списке и вверху редактора; оставите пустым - заголовком служит текст решения. Название удобно, когда решение длинное.</p>
+      <p>В поле «Решение» запишите, что анализируете. Необязательное «Название» становится заголовком анализа в списке и вверху редактора; без него заголовком служит текст решения.</p>
 
       <p class="set-h">Последствия и вопрос «а что потом?»</p>
-      <p>Добавляйте последствия кнопками «+ Положительное» и «+ Отрицательное». У каждой карточки два свойства: знак (плюс или минус) и горизонт во времени (близкое или отдаленное), оба переключаются касанием. Плюсы всегда показываются перед минусами.</p>
-      <p>Кнопка «А что потом?» раскрывает следующий уровень: у любого последствия есть свои последствия, глубина не ограничена. Кружок со знаком на ветви сворачивает и разворачивает ее. Меню карточки (три точки на карточке) дает «Дублировать ветвь», показ ветки матрицей или схемой и удаление.</p>
+      <p>Добавляйте последствия кнопками «+ Положительное» и «+ Отрицательное». У карточки два свойства: знак и горизонт во времени (близкое или отдаленное), оба переключаются касанием. Плюсы показываются перед минусами.</p>
+      <p>Кнопка «А что потом?» раскрывает следующий уровень: у последствия есть свои последствия, глубина не ограничена. Кружок со знаком сворачивает и разворачивает ветвь. Меню карточки (три точки) дает «Дублировать ветвь», показ матрицей или схемой и удаление.</p>
 
       <p class="set-h">Метки координат: люди, власть, дело</p>
-      <p>На каждой карточке три метки: Л - люди, В - власть, Д - дело. Это третья ось разбора, кроме знака и горизонта: по кому или чему бьет последствие. Меток можно ставить несколько на одну карточку. Строка «Фильтр» под решением показывает только последствия с выбранными координатами и предшествующие им последствия для контекста. Метки видны в матрице, схеме и экспортах.</p>
+      <p>На карточке три метки: Л - люди, В - власть, Д - дело. Это третья ось разбора, кроме знака и горизонта: по кому или чему бьет последствие; меток может быть несколько. «Фильтр» под решением оставляет последствия с выбранными координатами и предшествующие им для контекста. Метки видны в матрице, схеме и экспортах.</p>
 
       <p class="set-h">Поиск и большие разборы</p>
-      <p>Поле «Поиск по последствиям» оставляет в дереве только совпадения, подсвечивает их и считает число; совпадения внутри свернутых ветвей тоже показываются. Меню редактора дает «Развернуть все ветви» и «Свернуть все ветви». Кнопка «Крупные вперед» ставит впереди самые проработанные ветви по числу вложенных карточек - это только порядок показа, данные не меняются.</p>
+      <p>Поиск оставляет в дереве только совпадения, подсвечивает их и считает число, заглядывая и в свернутые ветви. Меню редактора дает «Развернуть все ветви» и «Свернуть все ветви». «Крупные вперед» ставит впереди самые проработанные ветви; это лишь порядок показа, данные не меняются.</p>
 
       <p class="set-h">Полнота и подсказки</p>
       <p>Счетчики баланса показывают соотношение плюсов и минусов по горизонтам, пустые карточки не считаются. Кнопка «полнота» открывает чек-лист из пяти шагов: сформулировано ли решение, есть ли плюсы и минусы, близкие и отдаленные по времени, применен ли вопрос «а что потом?», дошла ли глубина до третьего уровня. Подсказки - это короткие методические напоминания под решением: искать минусы там, где видны одни плюсы, продлевать цепочку вопросом «а что потом?», и слова В.К. Тарасова о последствиях. Их можно выключить переключателем «Подсказки».</p>
 
       <p class="set-h">Матрица и схема</p>
-      <p>«Матрица» раскладывает прямые последствия по четырем квадрантам: знак на строках, горизонт на столбцах; доступна для решения целиком и для любой ветки. «Схема» рисует последствия деревом: цвет шапки означает знак, в шапке указан горизонт, справа - метки координат. Ориентацию можно менять (сверху вниз или слева направо), масштаб - кнопками зума, ветви - сворачивать.</p>
-      <p>Кнопка «Сохранить PNG» сохраняет картинку всегда в светлой палитре и без кружков сворачивания, чтобы изображение было чистым, даже если на экране темная тема. В картинку попадает то, что видно: свернутая ветвь останется свернутой, разверните ее, если нужна полная.</p>
+      <p>«Матрица» раскладывает прямые последствия по четырем квадрантам: знак на строках, горизонт на столбцах; работает для решения целиком и для любой ветки. «Схема» рисует дерево: цвет шапки означает знак, в шапке горизонт, справа метки координат; ориентацию, масштаб и сворачивание ветвей можно менять.</p>
+      <p>«Сохранить PNG» дает картинку в светлой палитре и без кружков сворачивания, даже если на экране темная тема. В картинку попадает то, что видно: свернутая ветвь останется свернутой.</p>
 
       <p class="set-h">Pre-mortem</p>
       <p>Необязательный режим, включается в настройках. Это прием Гэри Кляйна: представить, что решение уже провалилось, и заранее назвать причины. Когда режим включен, в редакторе появляется кнопка; она помогает быстро добавить причину провала как отрицательное отдаленное последствие и продолжить цепочку.</p>
 
       <p class="set-h">Проверка результата</p>
-      <p>Когда время прошло, можно вернуться к разбору и сверить прогноз с жизнью. В меню (три точки) включите «Режим проверки результата»: у каждого последствия появятся отметки сбылось / частично / не сбылось, а вверху сводка по всем отметкам. Если судить рано, оставьте без отметки. Это не оценка-балл, а способ увидеть, что вы предвидите точно, а где ошибаетесь, и так натренировать предвидение. Отметки хранятся вместе с разбором и идут в выгрузку.</p>
+      <p>Когда время прошло, вернитесь к разбору и сверьте прогноз с жизнью. В меню (три точки) включите «Режим проверки результата»: у последствий появятся отметки сбылось / частично / не сбылось, вверху - сводка. Если судить рано, оставьте без отметки. Это не оценка-балл, а тренировка предвидения: видно, где вы точны, а где ошибаетесь. Отметки хранятся вместе с разбором и идут в выгрузку.</p>
 
       <p class="set-h">Хранение и приватность</p>
-      <p>Данные хранятся только в этом браузере на этом устройстве. Сервера нет, регистрации нет, после загрузки страница работает без сети. Это личная программа: ваши данные не видит никто, и вы не видите чужие. Важное сохраняйте ссылкой или файлом - при очистке данных браузера локальные данные исчезнут.</p>
+      <p>Данные хранятся только в этом браузере на этом устройстве: сервера и регистрации нет, после загрузки страница работает без сети, ваших данных не видит никто. Важное сохраняйте ссылкой или файлом: очистка данных браузера удалит и локальные записи.</p>
 
       <p class="set-h">Обмен и экспорт</p>
-      <p>Ссылка-снимок несет весь анализ внутри адреса: получатель увидит дерево и сможет сохранить себе копию, ваши данные при этом никуда не отправляются. Доступны выгрузка и импорт .json, экспорт md (в том числе прямо в Obsidian), копирование для Заметок iPhone и печать в PDF. Метки координат попадают в markdown, Заметки и печать.</p>
+      <p>Ссылка-снимок несет весь анализ внутри адреса: получатель увидит дерево и сможет сохранить копию, данные никуда не отправляются. Доступны выгрузка и импорт .json, экспорт md (в том числе прямо в Obsidian), копирование для Заметок iPhone и печать в PDF; метки координат попадают в md, Заметки и печать.</p>
 
       <p class="set-h">Советы для iPhone</p>
-      <p>Добавьте страницу на экран «Домой» (Поделиться, затем «На экран Домой») - она будет запускаться как приложение на весь экран. iOS дает версии с экрана «Домой» отдельное хранилище, не связанное с Safari: анализы из Safari там не видны, и наоборот. Выберите что-то одно, а переносите данные между ними через .json или ссылку-снимок. Для четкой картинки в мессенджере сохраняйте PNG в Фото и отправляйте оттуда либо посылайте как файл без сжатия.</p>
+      <p>Добавьте страницу на экран «Домой» (Поделиться, затем «На экран Домой»): она запускается как приложение на весь экран и получает отдельное от Safari хранилище, поэтому анализы из Safari там не видны, и наоборот. Выберите что-то одно, а переносите данные через .json или ссылку-снимок. Удаление значка с экрана «Домой» удаляет и его данные: перед удалением выгрузите анализы в .json.</p>
 
       <p class="sub" id="aboutVer">Версия</p>
       <p class="lnk">https://github.com/NSolyankin/a-chto-potom</p>
@@ -848,7 +857,7 @@ var LZString=function(){var r=String.fromCharCode,n="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 
 /* Версия приложения: дублируется в комментарии первой строки файла */
-var APP_VERSION = 'v1.14.1';
+var APP_VERSION = 'v1.15.0';
 
 function $(s, r){ return (r || document).querySelector(s); }
 function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -879,6 +888,7 @@ function loadStore(){
     brokenStore = true;
     try {
       localStorage.setItem(KEY + '_backup', raw);
+      localStorage.setItem(KEY + '_backupAt', new Date().toISOString()); /* D-02 */
       localStorage.removeItem(KEY);
     } catch (e2){}
   }
@@ -952,7 +962,23 @@ function touch(){
   doc.updatedAt = new Date().toISOString();
   if (snapshotMode){ return; } /* снимок не пишем в хранилище */
   scheduleSave();
+  editN++;
+  remindExport();
 }
+/* D-03: тост раз в сессию, после 30 правок и 14 суток без выгрузки */
+var editN = 0;
+function markExport(){ store.lastExportAt = new Date().toISOString(); scheduleSave(); }
+function remindExport(){
+  if (editN <= 30 || Date.now() - (Date.parse(store.lastExportAt || '') || 0) < 12096e5){ return; }
+  try {
+    if (sessionStorage.getItem('achtopotom_exp')){ return; }
+    sessionStorage.setItem('achtopotom_exp', '1');
+  } catch (e){}
+  toast('Давно не было резервной копии', 'Выгрузить .json');
+  toastFn = function(){ $('#btnExpJson').click(); };
+}
+/* D-15: сворачивание не меняет дату изменения */
+function saveCollapse(){ if (!snapshotMode){ scheduleSave(); } }
 
 /* Поиск узла: возвращает узел, родителя и индекс в массиве хранения */
 function findNode(root, id){
@@ -970,6 +996,8 @@ function findNode(root, id){
 }
 
 function isFilled(n){ return n.text.replace(/\s+/g, '').length > 0; }
+/* D-11: нормализация пробелов - одна функция вместо шести повторов */
+function normSp(t){ return t.replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, ''); }
 
 /* Все физически вложенные карточки, включая саму: N для диалога и тоста (п. 5.9) */
 function subtreeCount(n){
@@ -1021,6 +1049,7 @@ function grouped(children){
 /* ===== Состояние ===== */
 var doc = null;          /* активный документ */
 var undoBuf = null;      /* буфер возврата удаленной ветки: живет до исчезновения тоста */
+var toastFn = null;      /* действие тоста, кроме возврата ветки (D-03) */
 var openedEmpty = {};    /* id -> true: блок анализа без детей раскрыт в этой сессии */
 var currentNodeId = null;/* карточка, для которой открыто меню */
 var pendingOk = null;    /* действие кнопки Удалить в диалоге подтверждения */
@@ -1079,13 +1108,8 @@ $('#themeSeg').addEventListener('click', function(e){
 var TARASOV_SRC = 'В.К. Тарасов. Управленческая элита: как мы ее отбираем и готовим';
 var TARASOV_QUOTES = [
   'В природе не существует управленческого решения, которое имело бы только положительные или только отрицательные последствия, с чьих бы позиций мы эти последствия не рассматривали.',
-  'Побеждает тот, кто способен всесторонне оценить последствия своих решений.',
-  'Если человек способен видеть лишь одну сторону медали, это значит, что адекватно оценивать последствия управленческих решений он не в состоянии.',
-  'А требуется как раз обратное: оценить все возможные последствия, а не решения в целом.',
-  'Искусство управлять предполагает умение превратить «минус» в «плюс» для себя (и «плюс» в «минус» - для противника).',
-  'Типичной ошибкой являлось грубое нарушение последовательности решения задачи: начинают с оценки решения - плохое оно или хорошее.',
-  'Не может быть «правильного» решения управленческой ситуации, изложенной на бумаге в нескольких строках.'
-];
+  'Побеждает тот, кто способен всесторонне оценить последствия своих решений.'
+]; /* R-01: две цитаты, остальные - резерв байтов */
 var quoteIdx = Math.floor(Math.random() * TARASOV_QUOTES.length);
 function quotesOn(){ return store.settings.quotes !== false; }
 function renderEmptyQuote(){
@@ -1257,6 +1281,7 @@ popBk.addEventListener('click', closeMenu);
 var toastEl = $('#toast');
 var toastTimer = null;
 function toast(text, actionLabel){
+  toastFn = null;
   $('#toastText').textContent = text;
   var act = $('#toastAct');
   if (actionLabel){ act.textContent = actionLabel; act.hidden = false; }
@@ -1269,8 +1294,10 @@ function hideToast(){
   toastEl.classList.remove('show');
   clearTimeout(toastTimer);
   undoBuf = null;
+  toastFn = null;
 }
 $('#toastAct').addEventListener('click', function(){
+  if (toastFn){ var fn = toastFn; toastFn = null; hideToast(); fn(); return; } /* D-03 */
   if (undoBuf){
     var f = findNode(doc.root, undoBuf.parentId);
     if (f){
@@ -1306,8 +1333,28 @@ dlgBk.addEventListener('click', function(e){ if (e.target === dlgBk){ pendingOk 
 /* ===== О приложении ===== */
 var aboutBk = $('#aboutBk');
 $('#aboutVer').textContent = 'Версия ' + APP_VERSION;
-$('#miAbout').addEventListener('click', function(){ closeMenu(); openLayer(aboutBk); });
-$('#btnSettings').addEventListener('click', function(){ openLayer(aboutBk); });
+/* D-02: доступ к резервной копии; восстановления нет - копия битая */
+function bkRaw(){ try { return localStorage.getItem(KEY + '_backup'); } catch (e){ return null; } }
+function updateBkRow(){
+  var at = '';
+  try { at = localStorage.getItem(KEY + '_backupAt') || ''; } catch (e){}
+  var has = !!bkRaw();
+  $('#bkRow').hidden = !has;
+  if (has){ $('#bkLbl').textContent = 'Резервная копия' + (fmtDate(at) ? ' от ' + fmtDate(at) : ''); }
+}
+$('#btnBkDown').addEventListener('click', function(){
+  var raw = bkRaw();
+  if (raw){ shareOrDownload('a-chto-potom_backup_' + fileStamp() + '.json', raw, 'application/json'); }
+});
+$('#btnBkDel').addEventListener('click', function(){
+  closeLayer(aboutBk); /* иначе диалог окажется под настройками */
+  confirmDlg('Удалить резервную копию?', function(){
+    try { localStorage.removeItem(KEY + '_backup'); localStorage.removeItem(KEY + '_backupAt'); } catch (e){}
+    toast('Резервная копия удалена');
+  });
+});
+$('#miAbout').addEventListener('click', function(){ closeMenu(); updateBkRow(); openLayer(aboutBk); });
+$('#btnSettings').addEventListener('click', function(){ updateBkRow(); openLayer(aboutBk); });
 $('#aboutOk').addEventListener('click', function(){ closeLayer(aboutBk); });
 aboutBk.addEventListener('click', function(e){ if (e.target === aboutBk) closeLayer(aboutBk); });
 
@@ -1582,7 +1629,7 @@ function rerender(focusId){
   if (!fid && ae && ae.tagName === 'BUTTON' && ae.closest){
     var bcard = ae.closest('.csq');
     if (bcard && bcard.getAttribute('data-id')){
-      var bcls = (ae.getAttribute('class') || '').replace(/\bon\b/g, ' ').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+      var bcls = normSp((ae.getAttribute('class') || '').replace(/\bon\b/g, ' '));
       if (bcls){ btnCardId = bcard.getAttribute('data-id'); btnSel = '.' + bcls.split(' ').join('.'); }
     }
   }
@@ -1652,7 +1699,7 @@ function fmtDate(iso){
 
 var listQuery = '';
 var listSortKey = 'upd';
-function docSortTitle(d){ return (d.name || d.root.text || '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '').toLowerCase(); }
+function docSortTitle(d){ return normSp(d.name || d.root.text || '').toLowerCase(); }
 function docSearchText(d){
   var parts = [d.name || '', d.root.text || ''];
   (function walk(n){ for (var i = 0; i < n.children.length; i++){ parts.push(n.children[i].text || ''); walk(n.children[i]); } })(d.root);
@@ -1685,7 +1732,7 @@ function renderList(){
   $('#listFull').hidden = all.length === 0;
   $('#listEmpty').hidden = all.length > 0;
   if (all.length === 0){ renderEmptyQuote(); quoteIdx++; return; }
-  var q = listQuery.replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '').toLowerCase();
+  var q = normSp(listQuery).toLowerCase();
   var arr = q ? all.filter(function(d){ return docSearchText(d).indexOf(q) !== -1; }) : all;
   if (!arr.length){
     var none = el('p', 'hint');
@@ -1745,7 +1792,7 @@ docListEl.addEventListener('click', function(e){
   var d = store.docs[card.getAttribute('data-id')];
   if (d){
     enterEditor(d);
-    var lq = listQuery.replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+    var lq = normSp(listQuery);
     if (lq){ searchText = listQuery; $('#searchInput').value = listQuery; rerender(); updateSearchCount(); }
   }
 });
@@ -1985,6 +2032,7 @@ function updateSearchCount(){
   el.hidden = false;
 }
 function resetView(){
+  clearTimeout(searchTimer);
   searchText = '';
   sortBig = false;
   reviewOn = false;
@@ -1995,10 +2043,15 @@ function resetView(){
   $('#searchCount').hidden = true;
   $('#searchCount').textContent = '';
 }
+var searchTimer = null;
 $('#searchInput').addEventListener('input', function(){
   searchText = this.value;
-  if (doc){ rerender(); }
-  updateSearchCount();
+  clearTimeout(searchTimer);
+  /* D-13: дебаунс rerender */
+  searchTimer = setTimeout(function(){
+    if (doc){ rerender(); }
+    updateSearchCount();
+  }, 150);
 });
 $('#sortBig').addEventListener('click', function(){
   sortBig = !sortBig;
@@ -2020,7 +2073,7 @@ document.addEventListener('click', function(e){
   if (n.children.length){
     n.collapsed = !n.collapsed;
     open = !n.collapsed;
-    touch();
+    saveCollapse(); /* D-15 */
     if (!open){
       /* обновляю капсулу: содержимое могло измениться, пока ветка была раскрыта */
       var d = descFilled(n);
@@ -2363,7 +2416,7 @@ function schKids(n){
 
 /* Перенос текста по числу символов: до maxLines строк, дальше многоточие */
 function schWrap(t, maxChars, maxLines){
-  t = String(t || '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+  t = normSp(String(t || ''));
   var lines = [];
   var rest = t;
   while (rest.length && lines.length < maxLines){
@@ -2621,7 +2674,7 @@ function schToggleCollapse(id){
   var f = findNode(schRoot, id);
   if (!f){ return; }
   f.node.collapsed = !f.node.collapsed;
-  scheduleSave();
+  saveCollapse(); /* D-15 */
   schRender();
   schClampView();
   schApplyView();
@@ -2950,15 +3003,10 @@ function shareOrDownload(name, text, mime){
   downloadFile(name, text, mime);
 }
 
-$('#btnExpCopyMd').addEventListener('click', function(){
-  if (!doc){ return; }
-  closeLayer(sheetBk);
-  copyText(buildMd(doc), 'Скопировано');
-});
-
 $('#btnExpDownMd').addEventListener('click', function(){
   if (!doc){ return; }
   closeLayer(sheetBk);
+  markExport();
   shareOrDownload('a-chto-potom_' + fileStamp() + '.md', buildMd(doc), 'text/markdown');
 });
 
@@ -2974,6 +3022,7 @@ function obsidianNoteName(){
 $('#btnExpObsidian').addEventListener('click', function(){
   if (!doc){ return; }
   closeLayer(sheetBk);
+  markExport();
   var md = buildMd(doc);
   var url = 'obsidian://new?name=' + encodeURIComponent(obsidianNoteName()) +
     '&content=' + encodeURIComponent(md);
@@ -2991,11 +3040,21 @@ $('#btnExpObsidian').addEventListener('click', function(){
 });
 
 /* Ссылка-снимок (п. 7.4) и выгрузка .json (п. 7.6) */
+/* D-14: не шлю поля, которые sanitize игнорирует или достраивает */
+function snapLean(k, v){
+  if (k === 'id' || k === 'updatedAt' ||
+      (v === '' && (k === 'name' || k === 'outcome')) ||
+      (v === false && k === 'collapsed') ||
+      (v === 'near' && k === 'lastHorizon') ||
+      ((k === 'tags' || k === 'children') && !v.length)){ return undefined; }
+  return v;
+}
 $('#btnExpLink').addEventListener('click', function(){
   if (!doc){ return; }
   closeLayer(sheetBk);
+  markExport();
   var url = location.origin + location.pathname + '#d=' +
-    LZString.compressToEncodedURIComponent(JSON.stringify(doc));
+    LZString.compressToEncodedURIComponent(JSON.stringify(doc, snapLean));
   if (url.length > 3500){
     confirmDlg('Ссылка длиннее 3500 символов: в Telegram может не поместиться в одно сообщение, надежнее .json',
       function(){ copyText(url, 'Скопировано'); },
@@ -3008,6 +3067,7 @@ $('#btnExpLink').addEventListener('click', function(){
 $('#btnExpJson').addEventListener('click', function(){
   if (!doc){ return; }
   closeLayer(sheetBk);
+  markExport();
   var data = { version: 1 };
   for (var k in doc){
     if (Object.prototype.hasOwnProperty.call(doc, k)){ data[k] = doc[k]; }
@@ -3062,7 +3122,7 @@ function setAllCollapsed(val){
       walk(c);
     }
   })(doc.root);
-  touch();
+  saveCollapse(); /* D-15 */
   rerender();
 }
 $('#miExpandAll').addEventListener('click', function(){ closeMenu(); setAllCollapsed(false); });
@@ -3079,7 +3139,7 @@ $('#miDocDup').addEventListener('click', function(){
   copy.createdAt = now;
   copy.updatedAt = now;
   var cbase = copy.name || (isFilled(copy.root) ? flatLine(copy.root.text) : 'Без названия');
-  cbase = cbase.replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+  cbase = normSp(cbase);
   copy.name = (cbase.length > 112 ? cbase.slice(0, 112) : cbase) + ' (копия)';
   store.docs[copy.id] = copy;
   saveNow();
@@ -3145,21 +3205,7 @@ function buildPrintView(){
     printView.appendChild(pc);
     var osP = outcomeSummaryLine(doc);
     if (osP){ var pp = el('p', 'pbal'); pp.textContent = osP; printView.appendChild(pp); }
-  } else {
-    var h = el('h1');
-    h.textContent = 'А что потом? Мои данные';
-    printView.appendChild(h);
-    var u2 = el('ul');
-    docsSorted().forEach(function(dd){
-      var c = countersAll(dd.root);
-      var l2 = el('li');
-      l2.textContent = trim60(dd.root.text) + ' (' + fmtDate(dd.updatedAt) + '): близкие +' +
-        c.nearP + '/-' + c.nearM + ', отдаленные +' + c.farP + '/-' + c.farM +
-        '; полнота ' + completeness(dd).n + '/5';
-      u2.appendChild(l2);
-    });
-    printView.appendChild(u2);
-  }
+  } /* R-03: печать перечня со списка убрана */
 }
 $('#btnExpPrint').addEventListener('click', function(){
   closeLayer(sheetBk);
@@ -3206,7 +3252,11 @@ if (/^#d=/.test(location.hash || '')){
   /* Режим снимка (п. 7.5): документы в хранилище не затрагиваются до явного сохранения */
   var packed = location.hash.slice(3);
   var snapJson = null;
-  try { snapJson = LZString.decompressFromEncodedURIComponent(packed); } catch (e){}
+  /* D-06: бомба распаковки */
+  if (packed.length <= 20000){
+    try { snapJson = LZString.decompressFromEncodedURIComponent(packed); } catch (e){}
+    if (snapJson && snapJson.length > 400000){ snapJson = null; }
+  }
   var snapDoc = null;
   if (snapJson){
     try { snapDoc = sanitizeDoc(JSON.parse(snapJson)); } catch (e){}
@@ -3227,6 +3277,15 @@ if (/^#d=/.test(location.hash || '')){
 }
 if (brokenStore){
   toast('Сохраненные данные были повреждены. Начато заново, копия отложена');
+}
+if (!storageOk){ /* D-01: нет доступа к хранилищу */
+  var swm = 'Сохранение недоступно: работайте через выгрузку .json';
+  ['#storeWarn', '#storeWarnEd'].forEach(function(id){
+    var w = $(id);
+    w.firstChild.textContent = swm;
+    w.hidden = false;
+  });
+  toast(swm);
 }
 })();
 </script>
